@@ -1,0 +1,9 @@
+*.pyc
+
+.project
+
+*.komodoproject
+
+.pydevproject
+
+/env

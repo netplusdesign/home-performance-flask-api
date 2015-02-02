@@ -1,0 +1,16 @@
+arrow==0.4.4
+Flask==0.10.1
+Flask-Cors==1.10.2
+Flask-SQLAlchemy==2.0
+itsdangerous==0.24
+Jinja2==2.7.3
+MarkupSafe==0.23
+moment==0.2.2
+MySQL-python==1.2.5
+python-dateutil==2.4.0
+pytz==2014.10
+simplejson==3.6.5
+six==1.9.0
+SQLAlchemy==0.9.8
+times==0.7
+Werkzeug==0.9.6
