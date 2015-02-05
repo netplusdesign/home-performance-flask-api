@@ -66,14 +66,14 @@ class ChartingPerformanceTestCase(unittest.TestCase):
     def test_views_summary_years_no_start_or_end(self):
         rv = self.app.get('/api/houses/0/views/summary/?interval=years') 
         json_rv = json.loads(rv.data)
-        assert len(json_rv['years']) == 2
-        assert json_rv['totals']['net'] == -4624.208
+        assert len(json_rv['years']) == 3
+        assert json_rv['totals']['net'] == -4864.194
 
     def test_views_summary_months_no_duration(self):
-        rv = self.app.get('/api/houses/0/views/summary/?interval=months&start=2012-12-01') 
+        rv = self.app.get('/api/houses/0/views/summary/?interval=months&start=2013-12-01') 
         json_rv = json.loads(rv.data)
         assert len(json_rv['months']) == 13
-        assert json_rv['totals']['net'] == -1002.547
+        assert json_rv['totals']['net'] == 412.587
         
     def test_views_summary_months_no_start(self):
         rv = self.app.get('/api/houses/0/views/summary/?interval=months&end=2013-01-01')
