@@ -2,12 +2,25 @@
 # pylint: disable=no-member
 from chartingperformance import app
 from chartingperformance import db_session
-from chartingperformance.datamodels import Houses, MonitorDevices, EnergyMonthly,\
-                                           EnergyHourly, LimitsHourly
-from chartingperformance.viewmodels import CircuitDict, ViewSummary, ViewGeneration,\
-                                           ViewUsage, ViewHdd, ViewWater, ViewBasetemp,\
-                                           ViewHeatmap, ViewChart
+
+from chartingperformance.models import Houses
+from chartingperformance.models import MonitorDevices
+from chartingperformance.models import EnergyMonthly
+from chartingperformance.models import EnergyHourly
+from chartingperformance.models import LimitsHourly
+
+from chartingperformance.views import CircuitDict
+from chartingperformance.views import ViewSummary
+from chartingperformance.views import ViewGeneration
+from chartingperformance.views import ViewUsage
+from chartingperformance.views import ViewHdd
+from chartingperformance.views import ViewWater
+from chartingperformance.views import ViewBasetemp
+from chartingperformance.views import ViewHeatmap
+from chartingperformance.views import ViewChart
+
 from flask import request, jsonify, url_for
+
 from sqlalchemy import func
 
 @app.route('/api/houses/', methods=['GET'])

@@ -5,7 +5,6 @@ config = {
     'database' : 'home_performance_dev'
 }
 
-db_connect = 'mysql://%s:%s@%s/%s' % (config['user'], config['password'], config['host'], config['database'])
-
 DEBUG = True
-SECRET_KEY = 'sectretsecretsecret'
+SECRET_KEY = 'secretsecretsecret'
+DATABASE_URI = 'mysql://%s:%s@%s/%s' % (config['user'], config['password'], config['host'], config['database'])

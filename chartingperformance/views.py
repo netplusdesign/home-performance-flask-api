@@ -1,10 +1,17 @@
 """ View classes """
 # pylint: disable=no-member
-
 from chartingperformance import db_session
-from chartingperformance.datamodels import Houses, EnergyHourly, EnergyDaily, EnergyMonthly,\
-                                           TemperatureHourly, HDDDaily, HDDMonthly, Circuits,\
-                                           EstimatedMonthly
+
+from chartingperformance.models import Houses
+from chartingperformance.models import EnergyHourly
+from chartingperformance.models import EnergyDaily
+from chartingperformance.models import EnergyMonthly
+from chartingperformance.models import TemperatureHourly
+from chartingperformance.models import HDDDaily
+from chartingperformance.models import HDDMonthly
+from chartingperformance.models import Circuits
+from chartingperformance.models import EstimatedMonthly
+
 from flask import jsonify
 
 from sqlalchemy import func

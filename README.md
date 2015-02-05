@@ -12,13 +12,7 @@ A running version of this is setup at: TBD
 
 ## Installation -- Dev
 
-Make sure your database is already setup and populated with as least some test data.
-
-Then,
-
-clone this repo
-
-`cd project_folder`
+Make sure your database is already setup and populated with some test data.
 
 Create a virtual environment
 
@@ -74,11 +68,11 @@ List of monitoring devices for selected house
 
 ### api/houses/:house_id/circuits/
 
-Status: Not implemented
+Status: Working
 
 List of values for all circuits for selected house.
 
-Attibutes
+Attibutes - Not implemented
 
   * start -- date (just date for now, time is not supported)
   * end -- date
@@ -106,10 +100,12 @@ List of defaults for Angular app
 Should I have an endpoint for circuits and temperatures? Or just serve these from the devices endpoint?
 
 api/houses/:house_id/devices/:device_id/?data=field1+field2+field3
+
 api/houses/0/devices/10/?data=used+solar+net
+
 api/houses/0/devices/5+10/?data=used+solar+net
 
-### api/houses/:house_id/defaults/
+### api/houses/:house_id/views/defaults/
 
 Status: Working
 
@@ -118,7 +114,7 @@ List of defaults for Angular app
 * Attibutes
   * interval -- options are months and days
   
-### api/houses/:house_sname/views/
+### api/houses/:house_id/views/
 
 Status: Not implemented
 
@@ -137,9 +133,9 @@ List of available views and valid intervals
   * __heatmap__ -- days
   * __chart__ -- hours
 
-### api/houses/:house_sname/views/:view/
+### api/houses/:house_id/views/:view/
 
-Status: Working - Summary with intervals years and months only.
+Status: Working
 
 List of fields for selected view
 
@@ -150,7 +146,7 @@ Attibutes
   * duration -- string, time factor added to start, combined with hour(s), day(s) or month(s). Ex. 1month, 2months, 1year (Currently only addative to start date. If supplied, will override end date.)
   * interval -- int, options are years, months or days, hours.
   * base -- int, base temperature for 'heat' view only.
-  * circuit -- string, 
+  * circuit -- string. See api/houses/:house_id/circuits/
 
 If you do not include start or end, all records will be returned with a limit of 500 records.
 

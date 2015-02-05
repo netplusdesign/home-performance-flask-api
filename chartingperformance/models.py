@@ -2,9 +2,10 @@
 # pylint: disable=no-init
 # pylint: disable=too-few-public-methods
 # pylint: disable=missing-docstring
-
 from sqlalchemy import Column, Integer, DateTime, Numeric, String, ForeignKey
-from chartingperformance.database import Base
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 class Houses(Base):
     __tablename__ = 'houses'
