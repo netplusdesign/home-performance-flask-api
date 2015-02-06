@@ -2,7 +2,7 @@
 
 This repo houses a complete rewrite of the [home-performance-ang](https://github.com/netplusdesign/home-performance-ang) backend from PHP to Python and Flask.
 
-The new version of the Angular forntend is at [home-performance-ang-flask](https://github.com/netplusdesign/home-performance-ang-flask).
+The new version of the Angular frontend is at [home-performance-ang-flask](https://github.com/netplusdesign/home-performance-ang-flask).
 
 MySQL is still maintained as the database, but I'm using SQLAlchemy in hopes that this will make it easier to try out new DBs in the future.
 
