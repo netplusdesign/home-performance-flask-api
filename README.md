@@ -6,13 +6,13 @@ The new version of the Angular forntend is at [home-performance-ang-flask](https
 
 MySQL is still maintained as the database, but I'm using SQLAlchemy in hopes that this will make it easier to try out new DBs in the future.
 
-Database setup scripts and some sample data used for testing is at [home-performance-ops](https://github.com/netplusdesign/home-performance-ops).
+Database setup scripts at [home-performance-ops](https://github.com/netplusdesign/home-performance-ops).
 
 A running version of this is setup at: TBD
 
 ## Installation -- Dev
 
-Make sure your database is already setup and populated with some test data.
+Make sure database is already setup and populated with test data.
 
 Create a virtual environment
 
