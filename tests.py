@@ -14,7 +14,12 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         pass
         #os.close(self.db_fd)
         #os.unlink(flaskr.app.config['DATABASE'])
-        
+
+    def test_error_page(self):
+        rv = self.app.get('/api/house/')
+        json_rv = json.loads(rv.data)
+        assert json_rv['error'] == 'Not found'
+
     def test_houses(self):
         rv = self.app.get('/api/houses/')
         json_rv = json.loads(rv.data)

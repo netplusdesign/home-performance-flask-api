@@ -19,9 +19,14 @@ from chartingperformance.views import ViewBasetemp
 from chartingperformance.views import ViewHeatmap
 from chartingperformance.views import ViewChart
 
-from flask import request, jsonify, url_for
+from flask import request, jsonify, url_for, make_response
 
 from sqlalchemy import func
+
+@app.errorhandler(404)
+def not_found(error):
+    """ Return page not found error in json. """
+    return make_response(jsonify({'error': 'Not found'}), 404)
 
 @app.route('/api/houses/', methods=['GET'])
 def get_houses():
