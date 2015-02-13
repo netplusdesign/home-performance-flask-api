@@ -119,6 +119,12 @@ class HDDMonthly(Base):
 class HDDDaily(Base):
     __tablename__ = 'hdd_daily'
     house_id = Column(Integer, ForeignKey('houses.house_id'), primary_key=True)
+    date = Column(Date, primary_key=True)
+    hdd = Column(Numeric(precision=6, scale=3))
+
+class HDDHourly(Base):
+    __tablename__ = 'hdd_hourly'
+    house_id = Column(Integer, ForeignKey('houses.house_id'), primary_key=True)
     date = Column(DateTime, primary_key=True)
     hdd = Column(Numeric(precision=6, scale=3))
 
