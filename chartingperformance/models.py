@@ -2,7 +2,7 @@
 # pylint: disable=no-init
 # pylint: disable=too-few-public-methods
 # pylint: disable=missing-docstring
-from sqlalchemy import Column, Integer, DateTime, Numeric, String, ForeignKey
+from sqlalchemy import Column, Integer, Date, DateTime, Numeric, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -113,7 +113,7 @@ class EnergyMonthly(Base):
 class HDDMonthly(Base):
     __tablename__ = 'hdd_monthly'
     house_id = Column(Integer, ForeignKey('houses.house_id'), primary_key=True)
-    date = Column(DateTime, primary_key=True)
+    date = Column(Date, primary_key=True)
     hdd = Column(Numeric(precision=7, scale=3))
 
 class HDDDaily(Base):
@@ -125,7 +125,7 @@ class HDDDaily(Base):
 class EstimatedMonthly(Base):
     __tablename__ = 'estimated_monthly'
     house_id = Column(Integer, ForeignKey('houses.house_id'), primary_key=True)
-    date = Column(DateTime, primary_key=True)
+    date = Column(Date, primary_key=True)
     solar = Column(Numeric(precision=4))
     used = Column(Numeric(precision=4))
     hdd = Column(Numeric(precision=4))
@@ -135,7 +135,7 @@ class TemperatureDaily(Base):
     __tablename__ = 'temperature_daily'
     house_id = Column(Integer, ForeignKey('houses.house_id'), primary_key=True)
     device_id = Column(Integer, ForeignKey('monitor_devices.device_id'), primary_key=True)
-    date = Column(DateTime, primary_key=True)
+    date = Column(Date, primary_key=True)
     temperature_min = Column(Numeric(precision=6, scale=3))
     temperature_max = Column(Numeric(precision=6, scale=3))
     humidity_min = Column(Numeric(precision=6, scale=3))
@@ -153,7 +153,7 @@ class WaterMonthly(Base):
     __tablename__ = 'water_monthly'
     house_id = Column(Integer, ForeignKey('houses.house_id'), primary_key=True)
     device_id = Column(Integer, ForeignKey('monitor_devices.device_id'), primary_key=True)
-    date = Column(DateTime, primary_key=True)
+    date = Column(Date, primary_key=True)
     gallons = Column(Numeric(precision=7, scale=1))
 
 class LimitsHourly(Base):
