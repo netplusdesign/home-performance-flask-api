@@ -9,25 +9,25 @@ Base = declarative_base()
 
 class Houses(Base):
     __tablename__ = 'houses'
-    house_id = Column(Integer, primary_key=True)
-    name = Column(String)
-    sname = Column(String)
+    house_id = Column(Integer, primary_key=True, autoincrement=False)
+    name = Column(String(32))
+    sname = Column(String(32))
     iga = Column(Numeric(precision=8, scale=2))
     ciga = Column(Numeric(precision=8, scale=2))
     ega = Column(Numeric(precision=8, scale=2))
 
 class MonitorDevices(Base):
     __tablename__ = 'monitor_devices'
+    device_id = Column(Integer, primary_key=True, autoincrement=False)
     house_id = Column(Integer, ForeignKey('houses.house_id'), primary_key=True)
-    device_id = Column(Integer, primary_key=True)
-    name = Column(String)
+    name = Column(String(32))
 
 class Circuits(Base):
     __tablename__ = 'circuits'
     house_id = Column(Integer, ForeignKey('houses.house_id'), primary_key=True)
-    circuit_id = Column(String, primary_key=True)
-    name = Column(String)
-    description = Column(String)
+    circuit_id = Column(String(32), primary_key=True, autoincrement=False)
+    name = Column(String(32))
+    description = Column(String(80))
 
 class EnergyHourly(Base):
     __tablename__ = 'energy_hourly'
