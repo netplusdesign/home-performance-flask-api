@@ -54,6 +54,12 @@ def get_circuits(house_id):
 
     return circuits.get_response()
 
+@app.route('/api/houses/<house_id>/views/', methods=['GET'])
+def views(house_id):
+    """ Return list of available views for house X. """
+    
+    return jsonify(views=get_views(house_id))
+
 @app.route('/api/houses/<house_id>/views/default/', methods=['GET'])
 def setup(house_id):
     """ Return default values for houses X views. """
@@ -159,7 +165,8 @@ def get_house_details(house_id):
             'sname': house.sname,
             'id': house.house_id,
             'devices': url_for('get_devices', house_id=house.house_id, _external=True),
-            'circuits': url_for('get_circuits', house_id=house.house_id, _external=True)}
+            'circuits': url_for('get_circuits', house_id=house.house_id, _external=True),
+            'views': url_for('views', house_id=house.house_id, _external=True)}
 
 def get_devices_all(house_id):
     """ Return array of devices for house X. """
@@ -210,3 +217,17 @@ def get_limits(house_id):
             'hdd_max': limits.hdd_max,
             'start_date': str(limits.start_date),
             'end_date': str(limits.end_date)}
+
+def get_views(house_id):
+    """  Return list of endpoints """
+    
+    return [
+        url_for('setup', house_id=house_id, _external=True),
+        url_for('view_summary', house_id=house_id, _external=True),
+        url_for('view_generation', house_id=house_id, _external=True),
+        url_for('view_usage', house_id=house_id, _external=True),
+        url_for('view_hdd', house_id=house_id, _external=True),
+        url_for('view_water', house_id=house_id, _external=True),
+        url_for('view_heatmap', house_id=house_id, _external=True),
+        url_for('view_chart', house_id=house_id, _external=True)
+    ]
