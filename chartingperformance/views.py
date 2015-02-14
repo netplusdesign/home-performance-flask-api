@@ -24,10 +24,14 @@ class View(object):
     """ Parent View provides common methods. Never used directly. """
 
     def __init__(self, args):
+        self.success = True
         self.regex = re.compile("([0-9]+)([a-zA-Z]+)")
         self.valid_intervals = ['hour', 'day', 'month', 'year'] # also need to validate durations
-        self.args = self.set_args(args)
-        # if self.args['error']    need to figure out how to propogate error if invalid args
+        if args:
+            self.args = self.set_args(args)
+        else:
+            self.success = False
+            self.error = { 'error':'No arguments found.' }
         self.base_query = None
 
     def filter_query_by_date_range(self, table):
@@ -150,19 +154,19 @@ class ViewSummary(View):
 
     def __init__(self, args, house_id):
         super(ViewSummary, self).__init__(args)
-
-        self.base_query = db_session.\
-                          query(EnergyMonthly.date,
-                                label('sum_solar', func.sum(EnergyMonthly.solar)),
-                                label('sum_used', func.sum(EnergyMonthly.used)),
-                                label('sum_adjusted_load', func.sum(EnergyMonthly.adjusted_load)),
-                                label('sum_hdd', func.sum(HDDMonthly.hdd))).\
-            outerjoin(HDDMonthly, and_(EnergyMonthly.date == HDDMonthly.date,
-                                        EnergyMonthly.house_id == HDDMonthly.house_id)).\
-            filter(EnergyMonthly.house_id == house_id) 
-
-        self.get_totals()
-        self.get_items()
+        if self.success:
+            self.base_query = db_session.\
+                              query(EnergyMonthly.date,
+                                    label('sum_solar', func.sum(EnergyMonthly.solar)),
+                                    label('sum_used', func.sum(EnergyMonthly.used)),
+                                    label('sum_adjusted_load', func.sum(EnergyMonthly.adjusted_load)),
+                                    label('sum_hdd', func.sum(HDDMonthly.hdd))).\
+                outerjoin(HDDMonthly, and_(EnergyMonthly.date == HDDMonthly.date,
+                                            EnergyMonthly.house_id == HDDMonthly.house_id)).\
+                filter(EnergyMonthly.house_id == house_id) 
+    
+            self.get_totals()
+            self.get_items()
 
     def get_totals(self):
         """ Get and store totals from database. """
@@ -194,6 +198,9 @@ class ViewSummary(View):
     def get_response(self):
         """ Return response in json format. """
 
+        if not self.success:
+            return jsonify(self.error)
+
         if 'year' in self.args['interval']:
             return jsonify(view='summary',
                            totals=self.json_totals,
@@ -210,9 +217,10 @@ class ViewGeneration(View):
     def __init__(self, args, house_id):
         super(ViewGeneration, self).__init__(args)
 
-        self.get_fields(house_id)
-        self.get_totals(house_id)
-        self.get_items()
+        if self.success:
+            self.get_fields(house_id)
+            self.get_totals(house_id)
+            self.get_items()
 
     def get_fields(self, house_id):
         """ Get and store additional generation fields from database. """
@@ -268,6 +276,9 @@ class ViewGeneration(View):
     def get_response(self):
         """ Return response in json format. """
 
+        if not self.success:
+            return jsonify(self.error)
+
         if 'year' in self.args['interval']:
             return jsonify(view='generation',
                            max_solar_hour=self.max_solar[0],
@@ -287,13 +298,13 @@ class ViewHdd(View):
 
     def __init__(self, args, house_id):
         super(ViewHdd, self).__init__(args)
-
-        self.get_heating_season(house_id)
-        self.get_coldest_hour(house_id)
-        self.get_coldest_day(house_id)
-        self.get_iga(house_id)
-        self.get_totals(house_id)
-        self.get_items()
+        if self.success:
+            self.get_heating_season(house_id)
+            self.get_coldest_hour(house_id)
+            self.get_coldest_day(house_id)
+            self.get_iga(house_id)
+            self.get_totals(house_id)
+            self.get_items()
 
     def get_heating_season(self, house_id):
         """ Set base query for heating season. """
@@ -386,6 +397,9 @@ class ViewHdd(View):
     def get_response(self):
         """ Return response in json format. """
 
+        if not self.success:
+            return jsonify(self.error)
+
         if 'year' in self.args['interval']:
             return jsonify(view='hdd',
                            coldest_hour=self.json_coldest_hour,
@@ -407,9 +421,9 @@ class ViewWater(View):
 
     def __init__(self, args, house_id):
         super(ViewWater, self).__init__(args)
-
-        self.get_totals(house_id)
-        self.get_items(house_id)
+        if self.success:
+            self.get_totals(house_id)
+            self.get_items(house_id)
 
     def get_totals(self, house_id):
         """ Get and store totals from database. """
@@ -503,6 +517,9 @@ class ViewWater(View):
     def get_response(self):
         """ Return response in json format. """
 
+        if not self.success:
+            return jsonify(self.error)
+
         if 'year' in self.args['interval']:
             return jsonify(view='water',
                            totals=self.json_totals,
@@ -519,8 +536,8 @@ class ViewBasetemp(View):
     def __init__(self, args, house_id):
 
         super(ViewBasetemp, self).__init__(args)
-
-        self.get_items(house_id)
+        if self.success:
+            self.get_items(house_id)
 
     def get_items(self, house_id):
         """ Get and store points (primarily hdd and ashp values) from database. """
@@ -572,6 +589,8 @@ class ViewBasetemp(View):
 
     def get_response(self):
         """ Return response in json format. """
+        if not self.success:
+            return jsonify(self.error)
 
         return jsonify(view='heat',
                        base=self.args['base'],
@@ -585,22 +604,24 @@ class ViewUsage(View):
 
         super(ViewUsage, self).__init__(args)
 
-        self.circuits = CircuitDict(house_id)
+        if self.success:
 
-        if self.args['circuit'] == 'summary':
-            self.get_summary(house_id)
-
-        elif self.args['circuit'] == 'all':
-            self.get_circuit_all(house_id)
-
-        elif self.args['circuit'] == 'ashp':
-            self.get_circuit_ashp(house_id)
-
-        elif self.args['circuit'] == 'all_other':
-            self.get_circuit_all_other(house_id)
-
-        else:
-            self.get_circuit_x(house_id, self.args['circuit'])
+            self.circuits = CircuitDict(house_id)
+    
+            if self.args['circuit'] == 'summary':
+                self.get_summary(house_id)
+    
+            elif self.args['circuit'] == 'all':
+                self.get_circuit_all(house_id)
+    
+            elif self.args['circuit'] == 'ashp':
+                self.get_circuit_ashp(house_id)
+    
+            elif self.args['circuit'] == 'all_other':
+                self.get_circuit_all_other(house_id)
+    
+            else:
+                self.get_circuit_x(house_id, self.args['circuit'])
 
     def get_summary(self, house_id):
         """ Get and store summary usage values from database. """
@@ -898,6 +919,9 @@ class ViewUsage(View):
     def get_response(self):
         """ Return response in json format. """
 
+        if not self.success:
+            return jsonify(self.error)
+
         if self.args['circuit'] == 'summary':
 
             return jsonify(view='usage.summary',
@@ -943,7 +967,8 @@ class ViewChart(View):
 
         super(ViewChart, self).__init__(args)
 
-        self.get_items(house_id)
+        if self.success:
+            self.get_items(house_id)
 
     def get_items(self, house_id):
         """ Get and store hourly values from database. """
@@ -1049,6 +1074,9 @@ class ViewChart(View):
     def get_response(self):
         """ Return response in json format. """
 
+        if not self.success:
+            return jsonify(self.error)
+
         return jsonify(view='chart',
                        interval=self.args['interval'],
                        hours=self.json_items)
@@ -1060,7 +1088,8 @@ class ViewHeatmap(View):
 
         super(ViewHeatmap, self).__init__(args)
 
-        self.get_items(house_id)
+        if self.success:
+            self.get_items(house_id)
 
     def get_items(self, house_id):
         """ Get and store daily values from database. """
@@ -1162,6 +1191,9 @@ class ViewHeatmap(View):
 
     def get_response(self):
         """ Return response in json format. """
+
+        if not self.success:
+            return jsonify(self.error)
 
         return jsonify(view='heatmap',
                        interval=self.args['interval'],
