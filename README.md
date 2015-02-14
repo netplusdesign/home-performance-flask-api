@@ -68,7 +68,7 @@ Add a new web app under the Web tab.
 
 In the path, enter...
 
-/home/name/chartingperformance
+`/home/name/chartingperformance`
 
 Check the WSGI configuration and make sure the app is imported correctly. It should look like this:
 
