@@ -72,7 +72,9 @@ In the path, enter...
 
 Check the WSGI configuration and make sure the app is imported correctly. It should look like this:
 
-    from chartingperformance import app as application
+```python
+from chartingperformance import app as application
+```
 
 Upload files to the chartingperformance folder.
 
@@ -84,8 +86,10 @@ Install 2 packages that are not standard on PythonAnywhere. Use the --user flag.
 
 Edit __init__.py and comment or remove the last 2 lines:
 
-    #if __name__ == '__main__':
-    #    app.run(debug=True)
+```python
+#if __name__ == '__main__':
+#    app.run(debug=True)
+```
 
 I also had to comment out this line:
 
