@@ -8,7 +8,7 @@ MySQL is still maintained as the database, but I'm using SQLAlchemy in hopes tha
 
 Database setup scripts at [home-performance-ops](https://github.com/netplusdesign/home-performance-ops).
 
-A running version of this is setup at: TBD
+A running version of the API is available at: [lburks.pythonanywhere.com/api/houses](http://lburks.pythonanywhere.com/api/houses)
 
 ## Installation -- Dev
 
@@ -48,9 +48,55 @@ Start the Flask HTTP server.
 
 You should see:  * Running on http://127.0.0.1:5000/
 
-Point browser at, http://127.0.0.1:5000/houses
+Point browser at, http://127.0.0.1:5000/api/houses
 
 And, if you've setup test data, you should see a json list of at least one house.
+
+## Installation -- PythonAnywhere
+
+Create a new database on the database tab.
+
+Upload a backup of your local database.
+
+From the MySQL console:
+
+`source filename.sql`
+
+Update default_settings.py with username, password, database and host info.
+
+Add a new web app under the Web tab.
+
+In the path, enter...
+
+/home/name/chartingperformance
+
+Check the WSGI configuration and make sure the app is imported correctly. It should look like this:
+
+    from chartingperformance import app as application
+
+Upload files to the chartingperformance folder.
+
+Install 2 packages that are not standard on PythonAnywhere. Use the --user flag.
+
+`pip install --user momment`
+
+`pip install -U --user flask-cors`
+
+Edit __init__.py and comment or remove the last 2 lines:
+
+    #if __name__ == '__main__':
+    #    app.run(debug=True)
+
+I also had to comment out this line:
+
+    #app.config.from_envvar('HOMEPERFORMANCE_SETTINGS')
+
+Although in hindsight, could have set the variable in the console. Maybe next time.
+
+Hit refresh on the Web tab, just to make sure everything is ready to go.
+
+Point browser at, http://youraccount.pythonanywhere.com/api/houses
+
 
 ## API reference
 
@@ -116,7 +162,7 @@ List of defaults for Angular app
   
 ### api/houses/:house_id/views/
 
-Status: Not implemented
+Status: Working
 
 The `views` endpoints cater specifically to the needs of the Angular frontend.
 
@@ -126,7 +172,7 @@ List of available views and valid intervals
   * __usage__ -- months, days, hours. Returns date, used and budgeted.
   * __generation__ -- months, days, hours. Returns date, solar and estimated.
   * net -- months, days, hours. Returns ???
-  * __heat__ -- months, days, hours. Returns date, ashp and hdd.
+  * __basetemp__ -- months, days, hours. Returns date, ashp and hdd.
   * __water__ -- months. Returns date, main, cold, hot, water_heater and water_pump.
   * temperatures -- months, days, hours. Returns date, ???
   * __hdd__ -- months, days, hours. Returns date, hdd and estimated
@@ -144,7 +190,7 @@ Attibutes
   * start -- date, range includes start date. (time is ignored). Ex. 2014-12-01
   * end -- date, range does _not_ include end date. (time is ignored). Ex. 2014-12-01
   * duration -- string, time factor added to start, combined with hour(s), day(s) or month(s). Ex. 1month, 2months, 1year (Currently only addative to start date. If supplied, will override end date.)
-  * interval -- int, options are years, months or days, hours.
+  * interval -- int, options are years, months or days, hours. Not all intervals work on all views.
   * base -- int, base temperature for 'heat' view only.
   * circuit -- string. See api/houses/:house_id/circuits/
 
@@ -152,9 +198,9 @@ If you do not include start or end, all records will be returned with a limit of
 
 Examples
 
-  * views/summary/?interval=years  (yearly/summary view)
-  * views/summary/?start=2014-01-01&duration=1year&interval=months (summary for 2014 by month)
-  * views/usage/?start=2014-01-01&duation=1year  (usage summary 2014)
-  * views/usage/?start=2014-01-01&duation=1year&interval=months&circuit=ashp  (usage for ashp in 2014 by month)
-  * views/usage/?start=2014-01-01&duration=1month&interval=days&circuit=ashp  (usage for ashp in Jan 2014 by day)
+  * [views/summary/?interval=years](http://lburks.pythonanywhere.com/api/houses/0/views/summary/?interval=years)  (yearly/summary view)
+  * [views/summary/?start=2014-01-01&duration=1year&interval=months](http://lburks.pythonanywhere.com/api/houses/0/views/summary/?start=2014-01-01&duration=1year&interval=months) (summary for 2014 by month)
+  * [views/usage/?start=2014-01-01&duation=1year](http://lburks.pythonanywhere.com/api/houses/0/views/usage/?start=2014-01-01&duation=1year)  (usage summary 2014)
+  * [views/usage/?start=2014-01-01&duation=1year&interval=months&circuit=ashp](http://lburks.pythonanywhere.com/api/houses/0/views/usage/?start=2014-01-01&duation=1year&interval=months&circuit=ashp)  (usage for ashp in 2014 by month)
+  * views/usage/?start=2014-01-01&duration=1month&interval=days&circuit=ashp  (usage for ashp in Jan 2014 by day) Days not implemented yet.
   
