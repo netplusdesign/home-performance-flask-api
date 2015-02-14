@@ -93,7 +93,9 @@ Edit __init__.py and comment or remove the last 2 lines:
 
 I also had to comment out this line:
 
-    #app.config.from_envvar('HOMEPERFORMANCE_SETTINGS')
+```python
+#app.config.from_envvar('HOMEPERFORMANCE_SETTINGS')
+```
 
 Although in hindsight, could have set the variable in the console. Maybe next time.
 
