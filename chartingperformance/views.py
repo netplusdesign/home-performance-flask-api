@@ -82,9 +82,6 @@ class View(object):
 
         interval = self.validate_interval(args.get('interval'),
                                           self.valid_intervals)
-        if 'error' in interval:
-            return jsonify(error='Interval: %s, not found or not implemented yet.'
-                           % args.get('interval'))
 
         start = args.get('start', None)
         if start is not None:
@@ -113,9 +110,10 @@ class View(object):
     def validate_interval(cls, interval, valid_options):
         """ Return valid interval option. Remove pluralized versions if any. """
 
-        for option in valid_options:
-            if option in interval:
-                return option
+        if interval is not None:
+            for option in valid_options:
+                if option in interval:
+                    return option
         return 'error'
 
     def set_end(self, start, duration):
