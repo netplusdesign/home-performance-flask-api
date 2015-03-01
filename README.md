@@ -151,7 +151,7 @@ List of defaults for Angular app
 
 Should I have an endpoint for circuits and temperatures? Or just serve these from the devices endpoint?
 
-api/houses/:house_id/devices/:device_id/?data=field1+field2+field3
+api/houses/:house_id/devices/:device_id/?data=field1,field2,field3
 
 api/houses/0/devices/10/?data=used+solar+net
 
