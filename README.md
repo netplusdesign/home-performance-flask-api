@@ -122,7 +122,7 @@ List of monitoring devices for selected house
 
 Status: Working
 
-List of values for all circuits for selected house.
+List all circuits for selected house.
 
 Attibutes - Not implemented
 
