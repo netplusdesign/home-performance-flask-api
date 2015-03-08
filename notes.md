@@ -2,7 +2,7 @@
 
 ## Problems and solutions.
 
-System could not locate MySQL driver after install
+### System could not locate MySQL driver after install
 
 > ImportError: dlopen(/Users/xyz/projects/home-performance-flask/env/lib/python2.7/site-packages/_mysql.so, 2): Library not loaded: libmysqlclient.18.dylib
 >   Referenced from: /Users/xyz/projects/home-performance-flask/env/lib/python2.7/site-packages/_mysql.so
@@ -21,11 +21,13 @@ Now try it again...
 
 `python run.py`
 
-But then I was getting serialization to JSON errors, so I found an article that said this would be fixed by installing simplejson. It worked. Does not need to be imported directly.
+### But then I was getting serialization to JSON errors.
+
+I found an article that said this would be fixed by installing simplejson. It worked. Does not need to be imported directly.
 
 `pip install simplejson`
 
-Then I tried to call the API from the Angular app running on another server port. 
+### Then I tried to call the API from the Angular app running on another server port. 
 
 > [Error] XMLHttpRequest cannot load http://127.0.0.1:5000/api/houses/0/views/summary/?interval=months&start=2013-01-01&duration=1year. Origin http://127.0.0.1 is not allowed by Access-Control-Allow-Origin. (app, line 0)
 
@@ -37,6 +39,19 @@ Now it should all work.
 
 `python run.py`
 
-Dates are more fun with moment!
+### Dates are more fun with moment!
 
 `pip install moment`
+
+### Trouble with database connections.
+
+I was getting Cross Control Allow Origin error after 5 or 10 minutes of not hitting the server. Error log reported:
+
+`sqlalchemy.exc.OperationalError: (OperationalError) (2013, 'Lost connection to MySQL server during query')`
+
+Conrad Ho at PythonAnywhere suggested this SqlAlchemy solution, [disconnect-handling-pessimistic](http://docs.sqlalchemy.org/en/rel_0_8/core/pooling.html#disconnect-handling-pessimistic).
+
+I added the listens_for recipe and imports to the `__init__.py` file.
+
+Worked like a charm. But it is a bit slow on the first connect.
+
