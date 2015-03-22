@@ -7,6 +7,7 @@ from chartingperformance.models import EnergyHourly
 from chartingperformance.models import EnergyDaily
 from chartingperformance.models import EnergyMonthly
 from chartingperformance.models import TemperatureHourly
+from chartingperformance.models import HDDHourly
 from chartingperformance.models import HDDDaily
 from chartingperformance.models import HDDMonthly
 from chartingperformance.models import Circuits
@@ -155,23 +156,33 @@ class ViewSummary(View):
     def __init__(self, args, house_id):
         super(ViewSummary, self).__init__(args)
         if self.success:
-            self.base_query = db_session.\
-                              query(EnergyMonthly.date,
-                                    label('sum_solar', func.sum(EnergyMonthly.solar)),
-                                    label('sum_used', func.sum(EnergyMonthly.used)),
-                                    label('sum_adjusted_load', func.sum(EnergyMonthly.adjusted_load)),
-                                    label('sum_hdd', func.sum(HDDMonthly.hdd))).\
-                outerjoin(HDDMonthly, and_(EnergyMonthly.date == HDDMonthly.date,
-                                            EnergyMonthly.house_id == HDDMonthly.house_id)).\
-                filter(EnergyMonthly.house_id == house_id) 
-    
-            self.get_totals()
-            self.get_items()
+            # default to monthly, has more data for 2012
+            energy_table = EnergyMonthly
+            hdd_table = HDDMonthly
+            div = 1
 
-    def get_totals(self):
+            if 'hour' in self.args['interval']:
+                energy_table = EnergyHourly
+                hdd_table = HDDHourly
+                div = 1000
+
+            self.base_query = db_session.\
+                              query(energy_table.date,
+                                    label('sum_solar', func.sum(energy_table.solar)/div),
+                                    label('sum_used', func.sum(energy_table.used)/div),
+                                    label('sum_adjusted_load', func.sum(energy_table.adjusted_load)/div),
+                                    label('sum_hdd', func.sum(hdd_table.hdd))).\
+                outerjoin(hdd_table, and_(energy_table.date == hdd_table.date,
+                                            energy_table.house_id == hdd_table.house_id)).\
+                filter(energy_table.house_id == house_id) 
+    
+            self.get_totals(energy_table)
+            self.get_items(energy_table)
+
+    def get_totals(self, energy_table):
         """ Get and store totals from database. """
 
-        self.filter_query_by_date_range(EnergyMonthly)
+        self.filter_query_by_date_range(energy_table)
 
         totals = self.base_query.one()
 
@@ -181,10 +192,10 @@ class ViewSummary(View):
                             'hdd': totals.sum_hdd
                            }
 
-    def get_items(self):
+    def get_items(self, energy_table):
         """ Get and store rows from database. """
 
-        items = self.group_query_by_interval(EnergyMonthly)
+        items = self.group_query_by_interval(energy_table)
 
         self.json_items = []
         for item in items:
@@ -210,6 +221,11 @@ class ViewSummary(View):
             return jsonify(view='summary',
                            totals=self.json_totals,
                            months=self.json_items)
+
+        if 'day' in self.args['interval']:
+            return jsonify(view='summary',
+                           totals=self.json_totals,
+                           days=self.json_items)
 
 class ViewGeneration(View):
     """ Genration view query and response methods. """
