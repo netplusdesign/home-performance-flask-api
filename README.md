@@ -103,6 +103,17 @@ Hit refresh on the Web tab, just to make sure everything is ready to go.
 
 Point browser at, http://youraccount.pythonanywhere.com/api/houses
 
+## Installation -- FastCGI
+
+You will need flup.
+
+`pip install flup`
+
+Follow your host's instructions for setting up your Python environment. Everyone is different. This may include a `.htaccess` file.
+
+Add a `myapp.fcgi` file to your project directory. See [Flask documentation on FastCGI](http://flask.pocoo.org/docs/0.10/deploying/fastcgi/).
+
+Touch the `myapp.fcgi` file after any updates to code.
 
 ## API reference
 
@@ -131,7 +142,7 @@ Attibutes - Not implemented
   * duation -- i int, combined with hour(s), day(s) or month(s). Examples: 1hour, 24hours, 1month, 2months, 1year 
   * interval -- options are years, months or days
 
-### api/houses/:house_id/circuits/:circuit+circuit+circuit...
+### api/houses/:house_id/circuits/:circuit,circuit,circuit...
 
 Status: Not implemented
 
