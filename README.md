@@ -1,4 +1,4 @@
-# home-performance-flask
+# home-performance-flask-api
 
 This repo houses a complete rewrite of the [home-performance-ang](https://github.com/netplusdesign/home-performance-ang) backend from PHP to Python and Flask.
 
@@ -8,7 +8,7 @@ MySQL is still maintained as the database, but I'm using SQLAlchemy in hopes tha
 
 Database setup scripts at [home-performance-ops](https://github.com/netplusdesign/home-performance-ops).
 
-A running version of the API is available at: [lburks.pythonanywhere.com/api/houses](http://lburks.pythonanywhere.com/api/houses)
+A running version of the API is available at: [netplusdesign.com/api/houses](http://netplusdesign.com/api/houses)
 
 ## Installation -- Dev
 
