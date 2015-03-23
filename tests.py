@@ -56,6 +56,13 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         json_rv = json.loads(rv.data)
         assert 'Interval \'days\' does not exist' in rv.data
 
+    def test_views_summary_days(self):
+        rv = self.app.get('/api/houses/0/views/summary/?interval=days&start=2014-01-01&duration=31days') 
+        json_rv = json.loads(rv.data)
+        assert len(json_rv['days']) == 31
+        assert json_rv['days'][0]['net'] == 22.0340000000
+        assert json_rv['totals']['net'] == 630.9560000000
+
     def test_views_summary_months(self):
         rv = self.app.get('/api/houses/0/views/summary/?interval=months&start=2012-01-01&duration=1year') 
         json_rv = json.loads(rv.data)
