@@ -65,3 +65,7 @@ Install went well for everything except MySQL. Support recommended the following
   Deleting this file ~/.env/env/lib/python2.7/no-global-site-packages.txt will make that virtualenv environment use the system packages as well as the local packages.
 
 Sort of goes against the whole virtual environment thing, but it works.
+
+### FastCGI cacheing
+
+To temporarily disable cache for 5 to 10 minutes when making changes to the site, add `?nocache=1` to the end of the url. 
