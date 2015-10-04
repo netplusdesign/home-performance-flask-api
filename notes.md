@@ -4,17 +4,17 @@
 
 ### System could not locate MySQL driver after install
 
-> ImportError: dlopen(/Users/xyz/projects/home-performance-flask/env/lib/python2.7/site-packages/_mysql.so, 2): Library not loaded: libmysqlclient.18.dylib
->   Referenced from: /Users/xyz/projects/home-performance-flask/env/lib/python2.7/site-packages/_mysql.so
+> ImportError: dlopen(/Users/xyz/projects/home-performance-flask/env/lib/python2.7/site-packages/\_mysql.so, 2): Library not loaded: libmysqlclient.18.dylib
+>   Referenced from: /Users/xyz/projects/home-performance-flask/env/lib/python2.7/site-packages/\_mysql.so
 
 This article explained the fix, noted below. http://stackoverflow.com/questions/6383310/python-mysqldb-library-not-loaded-libmysqlclient-18-dylib
 
 `otool -L /Users/xyz/projects/home-performance-flask/env/lib/python2.7/site-packages/_mysql.so`
 
->/Users/xyz/projects/home-performance-flask/env/lib/python2.7/site-packages/_mysql.so:
+>/Users/xyz/projects/home-performance-flask/env/lib/python2.7/site-packages/\_mysql.so:
 >	libmysqlclient.18.dylib (compatibility version 18.0.0, current version 18.0.0)
 >	/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1197.1.1)
-	
+
 `sudo install_name_tool -change libmysqlclient.18.dylib /usr/local/mysql/lib/libmysqlclient.18.dylib /Users/xyz/projects/home-performance-flask/env/lib/python2.7/site-packages/_mysql.so`
 
 Now try it again...
@@ -27,7 +27,7 @@ I found an article that said this would be fixed by installing simplejson. It wo
 
 `pip install simplejson`
 
-### Then I tried to call the API from the Angular app running on another server port. 
+### Then I tried to call the API from the Angular app running on another server port.
 
 > [Error] XMLHttpRequest cannot load http://127.0.0.1:5000/api/houses/0/views/summary/?interval=months&start=2013-01-01&duration=1year. Origin http://127.0.0.1 is not allowed by Access-Control-Allow-Origin. (app, line 0)
 
@@ -68,4 +68,4 @@ Sort of goes against the whole virtual environment thing, but it works.
 
 ### FastCGI cacheing
 
-To temporarily disable cache for 5 to 10 minutes when making changes to the site, add `?nocache=1` to the end of the url. 
+To temporarily disable cache for 5 to 10 minutes when making changes to the site, add `?nocache=1` to the end of the url.

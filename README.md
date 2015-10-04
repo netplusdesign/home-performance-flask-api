@@ -129,18 +129,84 @@ Status: Working
 
 List of monitoring devices for selected house
 
+### api/houses/:house_id/devices/:device_id
+
+Status: Not implemented
+
+List of values for selected device
+
+Attibutes
+
+  * start -- date, range includes start date. (time is ignored). Ex. 2014-12-01
+  * end -- date, range does _not_ include end date. (time is ignored). Ex. 2014-12-01
+  * duration -- string, time factor added to start, combined with hour(s), day(s) or month(s). Ex. 1month, 2months, 1year (Currently only addative to start date. If supplied, will override end date.)
+  * interval -- int, options are years, months or days, hours. Not all intervals work on all views.
+  * fields -- string (CSV) of fields to return. Varies by device. 
+
+Fields by device
+
+Devices 0, 1, 2 & 3 - temperature monitors
+
+   * date
+   * temperature (degrees Fahrenheit)
+   * humidity (%)
+
+Device 4 - TED energy monitor
+
+  * date
+  * adjusted_load (wh hourly, kWh daily and monthly)
+  * solar
+  * used
+
+Device 5 - eMonitor energy monitor
+
+  * all the device 4 circuits, plus...
+  * water_heater
+  * ashp
+  * water_pump
+  * dryer
+  * washer
+  * dishwasher
+  * stove
+
+Device 6 & 7 - main & hot water
+
+  * date
+  * gallons
+
+Device 8 - Albany HHD
+
+  * date
+  * hdd
+
+Device 9 - meter read
+
+  * same as device 4
+
+Device 10 - eGauge energy monitor
+
+  * all the device 5 circuits, plus...
+  * refrigerator
+  * living_room
+  * aux_heat_bedrooms
+  * aux_heat_living
+  * study
+  * barn
+  * basement_west
+  * basement_east
+  * ventilation
+  * ventilation_preheat
+  * kitchen_recept_rt
+
+Example
+
+  * api/houses/0/devices/10/?fields=used,solar,net
+
 ### api/houses/:house_id/circuits/
 
 Status: Working
 
 List all circuits for selected house.
-
-Attibutes - Not implemented
-
-  * start -- date (just date for now, time is not supported)
-  * end -- date
-  * duation -- i int, combined with hour(s), day(s) or month(s). Examples: 1hour, 24hours, 1month, 2months, 1year 
-  * interval -- options are years, months or days
 
 ### api/houses/:house_id/circuits/:circuit,circuit,circuit...
 
@@ -150,23 +216,24 @@ List of values for selected circuits for selected house.
 
 Attibutes
 
-  * start -- date (just date for now, time is not supported)
-  * duation -- i int, combined with hour(s), day(s) or month(s). Examples: 1month, 2months, 1year 
-  * interval -- options are years, months, days or hours
+  * start -- date, range includes start date. (time is ignored). Ex. 2014-12-01
+  * end -- date, range does _not_ include end date. (time is ignored). Ex. 2014-12-01
+  * duration -- string, time factor added to start, combined with hour(s), day(s) or month(s). Ex. 1month, 2months, 1year (Currently only addative to start date. If supplied, will override end date.)
+  * interval -- int, options are years, months or days, hours. Not all intervals work on all views.
 
 ### api/houses/:house_id/temperatures/
 
 Status: Not implemented
 
-List of defaults for Angular app
+List of values for selected 
 
-Should I have an endpoint for circuits and temperatures? Or just serve these from the devices endpoint?
+Should I have an endpoint for circuits and temperatures? Or just serve these from the devices endpoint, or both?
 
-api/houses/:house_id/devices/:device_id/?data=field1,field2,field3
+api/houses/:house_id/devices/:device_id/?fields=field1,field2,field3
 
-api/houses/0/devices/10/?data=used+solar+net
+api/houses/0/devices/10/?fields=used,solar,net
 
-api/houses/0/devices/5+10/?data=used+solar+net
+api/houses/0/devices/5,10/?fields=used,solar,net
 
 ### api/houses/:house_id/views/defaults/
 
