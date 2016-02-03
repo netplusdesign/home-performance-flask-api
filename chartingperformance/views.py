@@ -32,7 +32,7 @@ class View(object):
             self.args = self.set_args(args)
         else:
             self.success = False
-            self.error = { 'error':'No arguments found.' }
+            self.error = {'error':'No arguments found.'}
         self.base_query = None
 
     def filter_query_by_date_range(self, table):
@@ -183,9 +183,9 @@ class ViewSummary(View):
                                     label('sum_adjusted_load', func.sum(energy_table.adjusted_load)/div),
                                     label('sum_hdd', func.sum(hdd_table.hdd))).\
                 outerjoin(hdd_table, and_(energy_table.date == hdd_table.date,
-                                            energy_table.house_id == hdd_table.house_id)).\
-                filter(energy_table.house_id == house_id) 
-    
+                                          energy_table.house_id == hdd_table.house_id)).\
+                filter(energy_table.house_id == house_id)
+
             self.get_totals(energy_table)
             self.get_items(energy_table)
 
@@ -396,7 +396,7 @@ class ViewHdd(View):
                                 label('sum_estimated',
                                       func.sum(EstimatedMonthly.hdd))).\
             outerjoin(EstimatedMonthly, and_(HDDMonthly.date == EstimatedMonthly.date,
-                                              HDDMonthly.house_id == EstimatedMonthly.house_id)).\
+                                             HDDMonthly.house_id == EstimatedMonthly.house_id)).\
             filter(HDDMonthly.house_id == house_id)
 
         self.filter_query_by_date_range(HDDMonthly)
@@ -548,11 +548,11 @@ class ViewWater(View):
         sql = """SELECT SUM(main.gallons) - SUM(hot.gallons) AS 'cold',
                     SUM(hot.gallons) AS 'hot', SUM(main.gallons) AS 'main',
                     SUM(e.water_heater) AS 'water_heater',
-                    SUM(e.water_pump) AS 'water_pump' 
-                 FROM energy_monthly e 
+                    SUM(e.water_pump) AS 'water_pump'
+                 FROM energy_monthly e
                  LEFT JOIN (SELECT house_id, date, gallons FROM water_monthly
                     WHERE device_id = 6) main ON e.date = main.date
-                     AND main.house_id = e.house_id 
+                     AND main.house_id = e.house_id
                  LEFT JOIN (SELECT house_id, date, gallons FROM water_monthly
                     WHERE device_id = 7) hot ON e.date = hot.date
                       AND hot.house_id = e.house_id
@@ -599,11 +599,11 @@ class ViewWater(View):
                     SUM(hot.gallons) AS 'cold', SUM(hot.gallons) AS 'hot',
                     SUM(main.gallons) AS 'main',
                     SUM(e.water_heater) AS 'water_heater',
-                    SUM(e.water_pump) AS 'water_pump' 
-                 FROM energy_monthly e 
+                    SUM(e.water_pump) AS 'water_pump'
+                 FROM energy_monthly e
                  LEFT JOIN (SELECT house_id, date, gallons FROM water_monthly
                     WHERE device_id = 6) main ON e.date = main.date
-                        AND main.house_id = e.house_id 
+                        AND main.house_id = e.house_id
                  LEFT JOIN (SELECT house_id, date, gallons FROM water_monthly
                     WHERE device_id = 7) hot ON e.date = hot.date
                         AND hot.house_id = e.house_id
@@ -721,19 +721,19 @@ class ViewUsage(View):
         if self.success:
 
             self.circuits = CircuitDict(house_id)
-    
+
             if self.args['circuit'] == 'summary':
                 self.get_summary(house_id)
-    
+
             elif self.args['circuit'] == 'all':
                 self.get_circuit_all(house_id)
-    
+
             elif self.args['circuit'] == 'ashp':
                 self.get_circuit_ashp(house_id)
-    
+
             elif self.args['circuit'] == 'all_other':
                 self.get_circuit_all_other(house_id)
-    
+
             else:
                 self.get_circuit_x(house_id, self.args['circuit'])
 
@@ -819,7 +819,7 @@ class ViewUsage(View):
                                                  func.sum(EstimatedMonthly.used))
                                           ). \
             join(EstimatedMonthly, and_(EnergyMonthly.date == EstimatedMonthly.date,
-                                         EnergyMonthly.house_id == EstimatedMonthly.house_id)).\
+                                        EnergyMonthly.house_id == EstimatedMonthly.house_id)).\
             filter(EnergyMonthly.house_id == house_id)
 
         self.filter_query_by_date_range(EnergyMonthly)
@@ -860,16 +860,16 @@ class ViewUsage(View):
             date_range = ""
 
         sql = """SELECT e.date AS 'date', SUM(e.ashp) AS 'actual', SUM(t.hdd) AS 'hdd'
-                 FROM 
+                 FROM
                     (SELECT date, SUM( IF( ((:base - temperature) / 24) > 0,
-                        ((:base - temperature) / 24), 0) ) AS 'hdd' 
+                        ((:base - temperature) / 24), 0) ) AS 'hdd'
                     FROM temperature_hourly
                     WHERE house_id = :house_id
-                        AND device_id = 0 
                         %s
+                        AND device_id = 0
                     GROUP BY MONTH(date), DAY(date) ) t,
                     (SELECT date, ashp
-                    FROM energy_daily 
+                    FROM energy_daily
                     WHERE house_id = :house_id
                         %s
                         AND (device_id = 5 OR device_id = 10) ) e
@@ -912,8 +912,8 @@ class ViewUsage(View):
 
         sql = """SELECT e.date AS 'date', e.ashp AS 'actual',
                     SUM( IF( ((:base - t.temperature) / 24) > 0,
-                    ((:base - t.temperature) / 24), 0) ) AS 'hdd' 
-                 FROM temperature_hourly t, 
+                    ((:base - t.temperature) / 24), 0) ) AS 'hdd'
+                 FROM temperature_hourly t,
                     (SELECT date, ashp FROM energy_monthly
                      WHERE house_id = :house_id
                      %s
@@ -1152,7 +1152,7 @@ class ViewChart(View):
           e.solar AS 'solar', e.used AS 'used',
           ti1.indoor1_deg AS 'first_floor_temp',
           ti2.indoor2_deg AS 'second_floor_temp',
-          ti0.indoor0_deg AS 'basement_temp', 
+          ti0.indoor0_deg AS 'basement_temp',
           tu.outdoor_deg AS 'outdoor_temp', th.hdd AS 'hdd',
           e.water_heater AS 'water_heater', e.ashp AS 'ashp',
           e.water_pump AS 'water_pump', e.dryer AS 'dryer',
@@ -1174,22 +1174,22 @@ class ViewChart(View):
               FROM temperature_hourly
               WHERE device_id = 1) ti1
           LEFT JOIN (SELECT house_id, date, temperature AS 'indoor2_deg'
-                     FROM temperature_hourly WHERE device_id = 2) ti2 
+                     FROM temperature_hourly WHERE device_id = 2) ti2
             ON CAST(LEFT(ti2.date,13) AS DATETIME) = CAST(LEFT(ti1.date,13) AS DATETIME)
                 AND ti2.house_id = ti1.house_id
           LEFT JOIN (SELECT house_id, date, temperature AS 'indoor0_deg'
-                     FROM temperature_hourly WHERE device_id = 3) ti0 
+                     FROM temperature_hourly WHERE device_id = 3) ti0
             ON CAST(LEFT(ti0.date,13) AS DATETIME) = CAST(LEFT(ti1.date,13) AS DATETIME)
                 AND ti0.house_id = ti1.house_id
           LEFT JOIN (SELECT house_id, date, temperature AS 'outdoor_deg'
-                     FROM temperature_hourly WHERE device_id = 0) tu 
+                     FROM temperature_hourly WHERE device_id = 0) tu
             ON CAST(LEFT(tu.date,13) AS DATETIME) = CAST(LEFT(ti1.date,13) AS DATETIME)
                 AND tu.house_id = ti1.house_id
           LEFT JOIN (SELECT house_id, date, hdd
-                     FROM hdd_hourly) th 
+                     FROM hdd_hourly) th
             ON CAST(LEFT(th.date,13) AS DATETIME) = CAST(LEFT(ti1.date,13) AS DATETIME)
                 AND th.house_id = ti1.house_id
-          LEFT JOIN energy_hourly e 
+          LEFT JOIN energy_hourly e
             ON CAST(LEFT(e.date,13) AS DATETIME) = CAST(LEFT(ti1.date,13) AS DATETIME)
                 AND e.house_id = ti1.house_id
         WHERE CAST(ti1.date AS DATE) = DATE(:start)
@@ -1280,7 +1280,7 @@ class ViewHeatmap(View):
         sql = """SELECT tu.date AS 'date', e.adjusted_load AS 'net',
                     e.solar AS 'solar', e.used AS 'used',
                     tu.outdoor_deg_min AS 'outdoor_deg_min',
-                    tu.outdoor_deg_max AS 'outdoor_deg_max',  
+                    tu.outdoor_deg_max AS 'outdoor_deg_max',
                     th.hdd AS 'hdd', e.water_heater AS 'water_heater',
                     e.ashp AS 'ashp', e.water_pump AS 'water_pump',
                     e.dryer AS 'dryer', e.washer AS 'washer',
@@ -1301,12 +1301,12 @@ class ViewHeatmap(View):
                     e.aux_heat_bedrooms + e.aux_heat_living + e.study +
                     e.barn + e.basement_west + e.basement_east +
                     e.ventilation + e.ventilation_preheat +
-                    e.kitchen_recept_rt) AS 'all_other' 
+                    e.kitchen_recept_rt) AS 'all_other'
                  FROM (SELECT house_id, date,
                         temperature_min AS 'outdoor_deg_min',
                         temperature_max AS 'outdoor_deg_max'
                        FROM temperature_daily
-                       WHERE device_id = 0) tu 
+                       WHERE device_id = 0) tu
                     LEFT JOIN (SELECT house_id, date, hdd FROM hdd_daily) th
                         ON th.date = tu.date AND th.house_id = tu.house_id
                     LEFT JOIN energy_daily e ON e.date = tu.date
