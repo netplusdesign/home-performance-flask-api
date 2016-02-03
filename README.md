@@ -52,6 +52,10 @@ Point browser at, http://127.0.0.1:5000/api/houses
 
 And, if you've setup test data, you should see a json list of at least one house.
 
+### Run Tests
+
+python `tests.py`
+
 ## Installation -- PythonAnywhere
 
 Create a new database on the database tab.
@@ -141,7 +145,7 @@ Attibutes
   * end -- date, range does _not_ include end date. (time is ignored). Ex. 2014-12-01
   * duration -- string, time factor added to start, combined with hour(s), day(s) or month(s). Ex. 1month, 2months, 1year (Currently only addative to start date. If supplied, will override end date.)
   * interval -- int, options are years, months or days, hours. Not all intervals work on all views.
-  * fields -- string (CSV) of fields to return. Varies by device. 
+  * fields -- string (CSV) of fields to return. Varies by device.
 
 Fields by device
 
@@ -225,7 +229,7 @@ Attibutes
 
 Status: Not implemented
 
-List of values for selected 
+List of values for selected
 
 Should I have an endpoint for circuits and temperatures? Or just serve these from the devices endpoint, or both?
 
@@ -243,7 +247,7 @@ List of defaults for Angular app
 
 * Attibutes
   * interval -- options are months and days
-  
+
 ### api/houses/:house_id/views/
 
 Status: Working
@@ -253,12 +257,12 @@ The `views` endpoints cater specifically to the needs of the Angular frontend.
 List of available views and valid intervals
 
   * __summary__ -- years, months. Returns date, used, solar, net and hdd.
-  * __usage__ -- months, days, hours. Returns date, used and budgeted.
-  * __generation__ -- months, days, hours. Returns date, solar and estimated.
+  * __usage__ -- years, months, days, hours. Returns date, used and budgeted.
+  * __generation__ -- years, months, days, hours. Returns date, solar and estimated.
   * net -- months, days, hours. Returns ???
   * __basetemp__ -- months, days, hours. Returns date, ashp and hdd.
-  * __water__ -- months. Returns date, main, cold, hot, water_heater and water_pump.
-  * temperatures -- months, days, hours. Returns date, ???
+  * __water__ -- years, months. Returns date, main, cold, hot, water_heater and water_pump.
+  * temperatures -- years, months, days, hours. Returns date, max, min, average, hdd.
   * __hdd__ -- months, days, hours. Returns date, hdd and estimated
   * __heatmap__ -- days
   * __chart__ -- hours
@@ -269,7 +273,7 @@ Status: Working
 
 List of fields for selected view
 
-Attibutes
+Attributes
 
   * start -- date, range includes start date. (time is ignored). Ex. 2014-12-01
   * end -- date, range does _not_ include end date. (time is ignored). Ex. 2014-12-01
@@ -287,4 +291,3 @@ Examples
   * [views/usage/?start=2014-01-01&duation=1year](http://lburks.pythonanywhere.com/api/houses/0/views/usage/?start=2014-01-01&duation=1year)  (usage summary 2014)
   * [views/usage/?start=2014-01-01&duation=1year&interval=months&circuit=ashp](http://lburks.pythonanywhere.com/api/houses/0/views/usage/?start=2014-01-01&duation=1year&interval=months&circuit=ashp)  (usage for ashp in 2014 by month)
   * views/usage/?start=2014-01-01&duration=1month&interval=days&circuit=ashp  (usage for ashp in Jan 2014 by day) Days not implemented yet.
-  
