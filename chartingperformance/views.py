@@ -534,13 +534,16 @@ class ViewWater(View):
                                   "water_heater", "water_pump")
 
         if self.args['start'] is not None and self.args['end'] is not None:
-            date_range = " e.date BETWEEN :start AND :end "
+            date_range = " AND e.date BETWEEN :start AND :end "
 
         elif self.args['start'] is not None:
-            date_range = " e.date >= :start "
+            date_range = " AND e.date >= :start "
 
         elif self.args['end'] is not None:
-            date_range = " e.date < :end "
+            date_range = " AND e.date < :end "
+
+        elif self.args['start'] is None and self.args['end'] is None:
+            date_range = ""
 
         sql = """SELECT SUM(main.gallons) - SUM(hot.gallons) AS 'cold',
                     SUM(hot.gallons) AS 'hot', SUM(main.gallons) AS 'main',
@@ -554,7 +557,7 @@ class ViewWater(View):
                     WHERE device_id = 7) hot ON e.date = hot.date
                       AND hot.house_id = e.house_id
                  WHERE e.house_id = :house_id
-                 AND %s
+                 %s
              """ % date_range
 
         totals = totals.from_statement(text(sql))
@@ -575,13 +578,17 @@ class ViewWater(View):
                                  "water_heater", "water_pump")
 
         if self.args['start'] is not None and self.args['end'] is not None:
-            date_range = " e.date BETWEEN :start AND :end "
+            date_range = " AND (e.date BETWEEN :start AND :end) "
 
         elif self.args['start'] is not None:
-            date_range = " e.date >= :start "
+            date_range = " AND e.date >= :start "
 
         elif self.args['end'] is not None:
-            date_range = " e.date < :end "
+            date_range = " AND e.date < :end "
+
+        elif self.args['start'] is None and self.args['end'] is None:
+            date_range = ""
+
 
         sql = """SELECT e.date AS 'date', SUM(main.gallons) -
                     SUM(hot.gallons) AS 'cold', SUM(hot.gallons) AS 'hot',
@@ -596,10 +603,10 @@ class ViewWater(View):
                     WHERE device_id = 7) hot ON e.date = hot.date
                         AND hot.house_id = e.house_id
                  WHERE e.house_id = :house_id
-                 AND %s
                  GROUP BY YEAR(e.date), MONTH(e.date)
+                 %s
                  ORDER BY e.date
-             """ % date_range
+             """ % (date_range, grp)
 
         items = items.from_statement(text(sql))
         items = items.params(house_id=house_id,
@@ -836,13 +843,16 @@ class ViewUsage(View):
         session = db_session.query("date", "actual", "hdd")
 
         if self.args['start'] is not None and self.args['end'] is not None:
-            date_range = " (date BETWEEN :start AND :end) "
+            date_range = " AND (date BETWEEN :start AND :end) "
 
         elif self.args['start'] is not None:
-            date_range = " date >= :start "
+            date_range = " AND date >= :start "
 
         elif self.args['end'] is not None:
-            date_range = " date < :end "
+            date_range = " AND date < :end "
+
+        elif self.args['start'] is None and self.args['end'] is None:
+            date_range = ""
 
         sql = """SELECT e.date AS 'date', SUM(e.ashp) AS 'actual', SUM(t.hdd) AS 'hdd'
                  FROM 
@@ -850,13 +860,13 @@ class ViewUsage(View):
                         ((:base - temperature) / 24), 0) ) AS 'hdd' 
                     FROM temperature_hourly
                     WHERE house_id = :house_id
-                        AND %s
                         AND device_id = 0 
+                        %s
                     GROUP BY MONTH(date), DAY(date) ) t,
                     (SELECT date, ashp
                     FROM energy_daily 
                     WHERE house_id = :house_id
-                        AND %s
+                        %s
                         AND (device_id = 5 OR device_id = 10) ) e
                 WHERE t.date = e.date
             """ % (date_range, date_range)
@@ -872,26 +882,35 @@ class ViewUsage(View):
 
         if self.args['start'] is not None and self.args['end'] is not None:
             date_range = "date BETWEEN :start AND :end "
-            date_range_t = "t." + date_range
+            date_range_t = "AND t." + date_range
+            date_range = "AND " + date_range
 
         elif self.args['start'] is not None:
             date_range = "date >= :start "
-            date_range_t = "t." + date_range
+            date_range_t = "AND t." + date_range
+            date_range = "AND " + date_range
 
         elif self.args['end'] is not None:
             date_range = "date < :end "
-            date_range_t = "t." + date_range
+            date_range_t = "AND t." + date_range
+            date_range = "AND " + date_range
+
+        elif self.args['start'] is None and self.args['end'] is None:
+            date_range = ""
+            date_range_t = ""
+
 
         sql = """SELECT e.date AS 'date', e.ashp AS 'actual',
                     SUM( IF( ((:base - t.temperature) / 24) > 0,
                     ((:base - t.temperature) / 24), 0) ) AS 'hdd' 
                  FROM temperature_hourly t, 
                     (SELECT date, ashp FROM energy_monthly
-                     WHERE house_id = :house_id AND %s
-                     AND (device_id = 5 OR device_id = 10)) e 
-                 WHERE t.device_id = 0 
+                     WHERE house_id = :house_id
+                     %s
+                     AND (device_id = 5 OR device_id = 10)) e
+                 WHERE t.device_id = 0
                     AND t.house_id = :house_id
-                    AND %s
+                    %s
                     AND MONTH(e.date) = MONTH(t.date)
                  GROUP BY YEAR(t.date), MONTH(t.date)
              """ % (date_range, date_range_t)
