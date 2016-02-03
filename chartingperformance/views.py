@@ -1061,35 +1061,67 @@ class ViewUsage(View):
 
         elif self.args['circuit'] == 'all':
 
-            return jsonify(view='usage.all',
-                           interval=self.args['interval'],
-                           circuit=self.json_circuit,
-                           totals=self.json_totals,
-                           months=self.json_items)
+            if 'month' in self.args['interval']:
+                return jsonify(view='usage.all',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               months=self.json_items)
+
+            if 'year' in self.args['interval']:
+                return jsonify(view='usage.all',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               years=self.json_items)
 
         elif self.args['circuit'] == 'ashp':
 
-            return jsonify(view='usage.ashp',
-                           interval=self.args['interval'],
-                           circuit=self.json_circuit,
-                           totals=self.json_totals,
-                           months=self.json_items)
+            if 'month' in self.args['interval']:
+                return jsonify(view='usage.ashp',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               months=self.json_items)
+
+            if 'year' in self.args['interval']:
+                return jsonify(view='usage.ashp',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               years=self.json_items)
 
         elif self.args['circuit'] == 'all_other':
 
-            return jsonify(view='usage.all_other',
-                           interval=self.args['interval'],
-                           circuit=self.json_circuit,
-                           totals=self.json_totals,
-                           months=self.json_items)
+            if 'month' in self.args['interval']:
+                return jsonify(view='usage.all_other',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               months=self.json_items)
+
+            if 'year' in self.args['interval']:
+                return jsonify(view='usage.all_other',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               years=self.json_items)
 
         else:
             # all other circuits
-            return jsonify(view='usage.' + self.args['circuit'],
-                           interval=self.args['interval'],
-                           circuit=self.json_circuit,
-                           totals=self.json_totals,
-                           months=self.json_items)
+            if 'month' in self.args['interval']:
+                return jsonify(view='usage.' + self.args['circuit'],
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               months=self.json_items)
+
+            if 'year' in self.args['interval']:
+                return jsonify(view='usage.' + self.args['circuit'],
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               years=self.json_items)
 
 class ViewChart(View):
     """ Hourly chart view query and response methods. """
