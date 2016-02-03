@@ -3,7 +3,7 @@ import unittest
 import json
 
 class ChartingPerformanceTestCase(unittest.TestCase):
-    
+
     def setUp(self):
         #self.db_fd, flaskr.app.config['DATABASE'] = tempfile.mkstemp()
         chartingperformance.app.config['TESTING'] = True
@@ -42,67 +42,67 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         json_rv = json.loads(rv.data)
         assert json_rv['house']['id'] == 0
 
-    def test_defaults_days(self): 
+    def test_defaults_days(self):
         rv = self.app.get('/api/houses/0/views/default/?interval=days')
         json_rv = json.loads(rv.data)
         assert json_rv['limits']['start_date'] == '2012-02-01 00:00:00'
-    
+
     def test_defaults_years(self):
         rv = self.app.get('/api/houses/0/views/default/?interval=years')
         assert 'Interval \'years\' does not exist' in rv.data
 
     def x_test_views_summary_days(self): # errors not propagating, long term fix
-        rv = self.app.get('/api/houses/0/views/summary/?interval=days&start=2012-01-01&duration=1year') 
+        rv = self.app.get('/api/houses/0/views/summary/?interval=days&start=2012-01-01&duration=1year')
         json_rv = json.loads(rv.data)
         assert 'Interval \'days\' does not exist' in rv.data
 
     def test_views_summary_days(self):
-        rv = self.app.get('/api/houses/0/views/summary/?interval=days&start=2014-01-01&duration=31days') 
+        rv = self.app.get('/api/houses/0/views/summary/?interval=days&start=2014-01-01&duration=31days')
         json_rv = json.loads(rv.data)
         assert len(json_rv['days']) == 31
         assert json_rv['days'][0]['net'] == 22.0340000000
         assert json_rv['totals']['net'] == 630.9560000000
 
     def test_views_summary_months(self):
-        rv = self.app.get('/api/houses/0/views/summary/?interval=months&start=2012-01-01&duration=1year') 
+        rv = self.app.get('/api/houses/0/views/summary/?interval=months&start=2012-01-01&duration=1year')
         json_rv = json.loads(rv.data)
         assert len(json_rv['months']) == 12
         assert json_rv['totals']['net'] == -3255.785
 
     def test_views_summary_years(self):
-        rv = self.app.get('/api/houses/0/views/summary/?interval=years&start=2012-01-01&duration=1year') 
+        rv = self.app.get('/api/houses/0/views/summary/?interval=years&start=2012-01-01&duration=1year')
         json_rv = json.loads(rv.data)
         assert len(json_rv['years']) == 1
         assert json_rv['totals']['net'] == -3255.785
 
     def test_views_summary_years_no_start_or_end(self):
-        rv = self.app.get('/api/houses/0/views/summary/?interval=years') 
+        rv = self.app.get('/api/houses/0/views/summary/?interval=years')
         json_rv = json.loads(rv.data)
         assert len(json_rv['years']) == 3
         assert json_rv['totals']['net'] == -4864.293712758
 
     def test_views_summary_months_no_duration(self):
-        rv = self.app.get('/api/houses/0/views/summary/?interval=months&start=2013-12-01') 
+        rv = self.app.get('/api/houses/0/views/summary/?interval=months&start=2013-12-01')
         json_rv = json.loads(rv.data)
         assert len(json_rv['months']) == 13
         assert json_rv['totals']['net'] == 412.487287242
-        
+
     def test_views_summary_months_no_start(self):
         rv = self.app.get('/api/houses/0/views/summary/?interval=months&end=2013-01-01')
         json_rv = json.loads(rv.data)
         assert len(json_rv['months']) == 12
         assert json_rv['totals']['net'] == -3255.785
-    
+
 
     def test_views_generation_months(self):
-        rv = self.app.get('/api/houses/0/views/generation/?interval=months&start=2013-01-01&duration=4months') 
+        rv = self.app.get('/api/houses/0/views/generation/?interval=months&start=2013-01-01&duration=4months')
         json_rv = json.loads(rv.data)
         assert len(json_rv['months']) == 4
         assert json_rv['totals']['actual'] == -2465.356
 
 
     def test_views_hdd_months(self):
-        rv = self.app.get('/api/houses/0/views/hdd/?interval=months&start=2013-01-01&duration=4months') 
+        rv = self.app.get('/api/houses/0/views/hdd/?interval=months&start=2013-01-01&duration=4months')
         json_rv = json.loads(rv.data)
         assert len(json_rv['months']) == 4
         assert json_rv['totals']['actual'] == 3809.332
@@ -119,7 +119,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['years'][0]['avg_temperature'] == 53.5261340
 
     def test_views_water_months(self):
-        rv = self.app.get('/api/houses/0/views/water/?interval=months&start=2013-01-01&duration=12months') 
+        rv = self.app.get('/api/houses/0/views/water/?interval=months&start=2013-01-01&duration=12months')
         json_rv = json.loads(rv.data)
         assert len(json_rv['months']) == 12
         assert json_rv['totals']['cold'] == 16253.4
@@ -130,7 +130,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
 
 
     def test_views_usage_months_summary(self):
-        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months') 
+        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months')
         json_rv = json.loads(rv.data)
         assert json_rv['view'] == 'usage.summary'
         #assert json_rv['totals']['actual'] == 7206.154
@@ -144,9 +144,9 @@ class ChartingPerformanceTestCase(unittest.TestCase):
                 assert circuit['name'] == 'Water heater'
             if circuit['circuit_id'] == 'all_other':
                 assert circuit['actual'] == 3098.636
-                
+
     def test_views_usage_months_summary_2014(self):
-        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2014-01-01&duration=12months') 
+        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2014-01-01&duration=12months')
         json_rv = json.loads(rv.data)
         assert json_rv['view'] == 'usage.summary'
         for circuit in json_rv['circuits']:
@@ -154,7 +154,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
                 assert circuit['actual'] == 1248.621306547
 
     def test_views_usage_months_all(self):
-        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=all') 
+        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=all')
         json_rv = json.loads(rv.data)
         assert json_rv['view'] == 'usage.all'
         assert len(json_rv['months']) == 12
@@ -168,7 +168,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['circuit']['description'] == 'Everything that is monitored (alias)'
 
     def test_views_usage_months_ashp(self):
-        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=ashp&base=50') 
+        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=ashp&base=50')
         json_rv = json.loads(rv.data)
         assert json_rv['view'] == 'usage.ashp'
         assert len(json_rv['months']) == 12
@@ -182,7 +182,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['circuit']['description'] == 'Air-source heat pump'
 
     def test_views_usage_months_all_other(self):
-        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=all_other') 
+        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=all_other')
         json_rv = json.loads(rv.data)
         assert json_rv['view'] == 'usage.all_other'
         assert len(json_rv['months']) == 12
@@ -194,7 +194,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['circuit']['description'] == 'Everything that is not monitored (alias)'
 
     def test_views_usage_months_all_other_with_new_circuits_2014(self):
-        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2014-01-01&duration=12months&circuit=all_other') 
+        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2014-01-01&duration=12months&circuit=all_other')
         json_rv = json.loads(rv.data)
         assert len(json_rv['months']) == 12
         assert json_rv['totals']['actual'] == 1248.621306547
@@ -202,7 +202,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['months'][4]['actual'] == 49.741706954
 
     def test_views_usage_months_water_heater(self):
-        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=water_heater') 
+        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=water_heater')
         json_rv = json.loads(rv.data)
         assert json_rv['view'] == 'usage.water_heater'
         assert len(json_rv['months']) == 12
@@ -214,7 +214,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['circuit']['description'] == ''
 
     def test_views_usage_months_water_pump(self):
-        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=water_pump') 
+        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=water_pump')
         json_rv = json.loads(rv.data)
         assert len(json_rv['months']) == 12
         assert json_rv['totals']['actual'] == 63.780
@@ -225,7 +225,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['circuit']['description'] == ''
 
     def test_views_usage_months_dryer(self):
-        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=dryer') 
+        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=dryer')
         json_rv = json.loads(rv.data)
         assert len(json_rv['months']) == 12
         assert json_rv['totals']['actual'] == 224.337
@@ -236,7 +236,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['circuit']['description'] == 'Ventless'
 
     def test_views_usage_months_washer(self):
-        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=washer') 
+        rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=washer')
         json_rv = json.loads(rv.data)
         assert len(json_rv['months']) == 12
         assert json_rv['totals']['actual'] == 44.702
@@ -247,7 +247,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['circuit']['description'] == 'Front loader'
 
     def test_views_basetemp_months(self):
-        rv = self.app.get('/api/houses/0/views/basetemp/?interval=months&start=2013-01-01&duration=12months&base=65') 
+        rv = self.app.get('/api/houses/0/views/basetemp/?interval=months&start=2013-01-01&duration=12months&base=65')
         json_rv = json.loads(rv.data)
         assert json_rv['interval'] == 'month'
         assert len(json_rv['points']) == 9
@@ -258,7 +258,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['points'][0]['solar'] == -10.3790
 
     def test_views_basetemp_default(self):
-        rv = self.app.get('/api/houses/0/views/basetemp/?interval=months&start=2013-01-01&duration=12months') 
+        rv = self.app.get('/api/houses/0/views/basetemp/?interval=months&start=2013-01-01&duration=12months')
         json_rv = json.loads(rv.data)
         assert json_rv['base'] == '65'
         assert json_rv['interval'] == 'month'
@@ -270,7 +270,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['points'][0]['solar'] == -10.3790
 
     def test_views_chart(self):
-        rv = self.app.get('/api/houses/0/views/chart/?interval=hours&start=2013-01-01&duration=1day') 
+        rv = self.app.get('/api/houses/0/views/chart/?interval=hours&start=2013-01-01&duration=1day')
         json_rv = json.loads(rv.data)
         assert json_rv['view'] == 'chart'
         assert len(json_rv['hours']) == 24
@@ -281,7 +281,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['hours'][0]['hdd'] == 1.417
 
     def test_views_heatmap(self):
-        rv = self.app.get('/api/houses/0/views/heatmap/?interval=hours&start=2013-01-01&duration=1month') 
+        rv = self.app.get('/api/houses/0/views/heatmap/?interval=hours&start=2013-01-01&duration=1month')
         json_rv = json.loads(rv.data)
         assert json_rv['view'] == 'heatmap'
         assert len(json_rv['days']) == 31
