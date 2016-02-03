@@ -78,6 +78,13 @@ class View(object):
                                        func.month(table.date),
                                        func.day(table.date))
 
+        elif 'hour' in self.args['interval']:
+            self.base_query = self.base_query.\
+                              group_by(func.year(table.date),
+                                       func.month(table.date),
+                                       func.day(table.date),
+                                       func.hour(table.date))
+
         self.base_query = self.base_query.order_by(table.date)
 
         return self.base_query
@@ -105,11 +112,14 @@ class View(object):
 
         base = args.get('base', '65')
 
+        location = args.get('location', '0')
+
         return {'interval': interval,
                 'start': start,
                 'end': end,
                 'circuit': circuit,
-                'base': base}
+                'base': base,
+                'location': location}
 
     @classmethod
     def validate_interval(cls, interval, valid_options):
@@ -431,6 +441,82 @@ class ViewHdd(View):
                            iga=self.iga_query.iga,
                            totals=self.json_totals,
                            months=self.json_items)
+
+class ViewTemperature(View):
+    """ Temperature view query and response methods. """
+
+    def __init__(self, args, house_id):
+        super(ViewTemperature, self).__init__(args)
+        if self.success:
+            self.get_totals(house_id)
+            self.get_items()
+
+    def get_totals(self, house_id):
+        """ Get and store totals from database. """
+
+        self.base_query = db_session.\
+                          query(TemperatureHourly.date,
+                                label('min_temperature',
+                                      func.min(TemperatureHourly.temperature)),
+                                label('max_temperature',
+                                      func.max(TemperatureHourly.temperature)),
+                                label('avg_temperature',
+                                      func.avg(TemperatureHourly.temperature)),
+                                label('sum_hdd',
+                                      func.sum(HDDHourly.hdd))).\
+            outerjoin(HDDHourly, and_(HDDHourly.date == TemperatureHourly.date,
+                                      HDDHourly.house_id == TemperatureHourly.house_id)).\
+            filter(and_(TemperatureHourly.house_id == house_id,
+                        TemperatureHourly.device_id == self.args['location']))
+
+        self.filter_query_by_date_range(TemperatureHourly)
+
+        totals = self.base_query.one()
+
+        self.json_totals = {'min_temperature': totals.min_temperature,
+                            'max_temperature': totals.max_temperature,
+                            'avg_temperature': totals.avg_temperature,
+                            'sum_hdd': totals.sum_hdd}
+
+    def get_items(self):
+        """ Get and store rows from database. """
+
+        items = self.group_query_by_interval(TemperatureHourly)
+
+        self.json_items = []
+        for item in items:
+            data = {'date': str(item.date),
+                    'min_temperature': item.min_temperature,
+                    'max_temperature': item.max_temperature,
+                    'avg_temperature': item.avg_temperature,
+                    'sum_hdd': item.sum_hdd}
+            self.json_items.append(data)
+
+    def get_response(self):
+        """ Return response in json format. """
+
+        if not self.success:
+            return jsonify(self.error)
+
+        if 'year' in self.args['interval']:
+            return jsonify(view='temperature',
+                           totals=self.json_totals,
+                           years=self.json_items)
+
+        if 'month' in self.args['interval']:
+            return jsonify(view='temperature',
+                           totals=self.json_totals,
+                           months=self.json_items)
+
+        if 'day' in self.args['interval']:
+            return jsonify(view='temperature',
+                           totals=self.json_totals,
+                           days=self.json_items)
+
+        if 'hour' in self.args['interval']:
+            return jsonify(view='temperature',
+                           totals=self.json_totals,
+                           hours=self.json_items)
 
 class ViewWater(View):
     """ Water view query and response methods. """
