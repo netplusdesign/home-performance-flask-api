@@ -109,6 +109,14 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['coldest_hour']['temperature'] == -7.089
         assert json_rv['coldest_day']['temperature'] == 60.770
 
+    def test_views_temperature_years(self):
+        rv = self.app.get('/api/houses/0/views/temperature/?interval=years&location=0')
+        json_rv = json.loads(rv.data)
+        assert len(json_rv['years']) == 4
+        assert json_rv['totals']['avg_temperature'] == 49.5175434
+        assert json_rv['totals']['max_temperature'] == 95.135
+        assert json_rv['years'][0]['sum_hdd'] == 4759.847
+        assert json_rv['years'][0]['avg_temperature'] == 53.5261340
 
     def test_views_water_months(self):
         rv = self.app.get('/api/houses/0/views/water/?interval=months&start=2013-01-01&duration=12months') 
