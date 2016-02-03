@@ -589,6 +589,11 @@ class ViewWater(View):
         elif self.args['start'] is None and self.args['end'] is None:
             date_range = ""
 
+        if 'month' in self.args['interval']:
+            grp = ", MONTH(e.date) "
+
+        else:
+            grp = ""
 
         sql = """SELECT e.date AS 'date', SUM(main.gallons) -
                     SUM(hot.gallons) AS 'cold', SUM(hot.gallons) AS 'hot',
@@ -603,8 +608,8 @@ class ViewWater(View):
                     WHERE device_id = 7) hot ON e.date = hot.date
                         AND hot.house_id = e.house_id
                  WHERE e.house_id = :house_id
-                 GROUP BY YEAR(e.date), MONTH(e.date)
                  %s
+                 GROUP BY YEAR(e.date) %s
                  ORDER BY e.date
              """ % (date_range, grp)
 
@@ -899,6 +904,11 @@ class ViewUsage(View):
             date_range = ""
             date_range_t = ""
 
+        if 'month' in self.args['interval']:
+            grp = ", MONTH(e.date) "
+
+        else:
+            grp = ""
 
         sql = """SELECT e.date AS 'date', e.ashp AS 'actual',
                     SUM( IF( ((:base - t.temperature) / 24) > 0,
@@ -912,8 +922,8 @@ class ViewUsage(View):
                     AND t.house_id = :house_id
                     %s
                     AND MONTH(e.date) = MONTH(t.date)
-                 GROUP BY YEAR(t.date), MONTH(t.date)
-             """ % (date_range, date_range_t)
+                 GROUP BY YEAR(e.date) %s
+             """ % (date_range, date_range_t, grp)
 
         items = session.from_statement(text(sql))
         items = items.params(house_id=house_id,
