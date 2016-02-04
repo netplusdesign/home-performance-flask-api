@@ -171,7 +171,7 @@ class ViewSummary(View):
             hdd_table = HDDMonthly
             div = 1
 
-            if 'day' in self.args['interval']:
+            if 'day' or 'hour' in self.args['interval']:
                 energy_table = EnergyHourly
                 hdd_table = HDDHourly
                 div = 1000
@@ -236,6 +236,11 @@ class ViewSummary(View):
             return jsonify(view='summary',
                            totals=self.json_totals,
                            days=self.json_items)
+
+        if 'hour' in self.args['interval']:
+            return jsonify(view='summary',
+                           totals=self.json_totals,
+                           hours=self.json_items)
 
 class ViewGeneration(View):
     """ Genration view query and response methods. """
