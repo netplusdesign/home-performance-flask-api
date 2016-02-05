@@ -276,34 +276,44 @@ class ViewGeneration(View):
         """ Get and store totals from database. """
 
         if ('year' in self.args['interval']) or ('month' in self.args['interval']):
-            self.base_query = db_session.query(EnergyMonthly.date,
-                                               label('sum_actual',
-                                                     func.sum(EnergyMonthly.solar)),
-                                               label('sum_estimated',
-                                                     func.sum(EstimatedMonthly.solar))).\
-                outerjoin(EstimatedMonthly,
-                          and_(EnergyMonthly.date == EstimatedMonthly.date,
-                               EnergyMonthly.house_id == EstimatedMonthly.house_id)).\
-                filter(EnergyMonthly.house_id == house_id)
-
-            self.filter_query_by_date_range(EnergyMonthly)
-
-            totals = self.base_query.one()
-
-            self.json_totals = {'actual': totals.sum_actual,
-                                'estimated': totals.sum_estimated}
+            self.get_totals_year_month(house_id)
 
         elif ('day' in self.args['interval']) or ('hour' in self.args['interval']):
-            self.base_query = db_session.query(EnergyHourly.date,
-                                               label('sum_actual',
-                                                     func.sum(EnergyHourly.solar))).\
-                filter(EnergyHourly.house_id == house_id)
+            self.get_totals_day_hour(house_id)
 
-            self.filter_query_by_date_range(EnergyHourly)
+    def get_totals_year_month(self, house_id):
+        """ Get and store yearly or monthly totals. """
 
-            totals = self.base_query.one()
+        self.base_query = db_session.query(EnergyMonthly.date,
+                                           label('sum_actual',
+                                                 func.sum(EnergyMonthly.solar)),
+                                           label('sum_estimated',
+                                                 func.sum(EstimatedMonthly.solar))).\
+            outerjoin(EstimatedMonthly,
+                      and_(EnergyMonthly.date == EstimatedMonthly.date,
+                           EnergyMonthly.house_id == EstimatedMonthly.house_id)).\
+            filter(EnergyMonthly.house_id == house_id)
 
-            self.json_totals = {'actual': totals.sum_actual}
+        self.filter_query_by_date_range(EnergyMonthly)
+
+        totals = self.base_query.one()
+
+        self.json_totals = {'actual': totals.sum_actual,
+                            'estimated': totals.sum_estimated}
+
+    def get_totals_day_hour(self, house_id):
+        """ Get and store daily or hourly totals. """
+
+        self.base_query = db_session.query(EnergyHourly.date,
+                                           label('sum_actual',
+                                                 func.sum(EnergyHourly.solar))).\
+            filter(EnergyHourly.house_id == house_id)
+
+        self.filter_query_by_date_range(EnergyHourly)
+
+        totals = self.base_query.one()
+
+        self.json_totals = {'actual': totals.sum_actual}
 
     def get_items(self):
         """ Get and store rows from database. """
