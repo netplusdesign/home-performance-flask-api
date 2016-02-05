@@ -275,34 +275,55 @@ class ViewGeneration(View):
     def get_totals(self, house_id):
         """ Get and store totals from database. """
 
-        self.base_query = db_session.query(EnergyMonthly.date,
-                                           label('sum_actual',
-                                                 func.sum(EnergyMonthly.solar)),
-                                           label('sum_estimated',
-                                                 func.sum(EstimatedMonthly.solar))).\
-            outerjoin(EstimatedMonthly,
-                      and_(EnergyMonthly.date == EstimatedMonthly.date,
-                           EnergyMonthly.house_id == EstimatedMonthly.house_id)).\
-            filter(EnergyMonthly.house_id == house_id)
+        if ('year' in self.args['interval']) or ('month' in self.args['interval']):
+            self.base_query = db_session.query(EnergyMonthly.date,
+                                               label('sum_actual',
+                                                     func.sum(EnergyMonthly.solar)),
+                                               label('sum_estimated',
+                                                     func.sum(EstimatedMonthly.solar))).\
+                outerjoin(EstimatedMonthly,
+                          and_(EnergyMonthly.date == EstimatedMonthly.date,
+                               EnergyMonthly.house_id == EstimatedMonthly.house_id)).\
+                filter(EnergyMonthly.house_id == house_id)
 
-        self.filter_query_by_date_range(EnergyMonthly)
+            self.filter_query_by_date_range(EnergyMonthly)
 
-        totals = self.base_query.one()
+            totals = self.base_query.one()
 
-        self.json_totals = {'actual': totals.sum_actual,
-                            'estimated': totals.sum_estimated}
+            self.json_totals = {'actual': totals.sum_actual,
+                                'estimated': totals.sum_estimated}
+
+        elif ('day' in self.args['interval']) or ('hour' in self.args['interval']):
+            self.base_query = db_session.query(EnergyHourly.date,
+                                               label('sum_actual',
+                                                     func.sum(EnergyHourly.solar))).\
+                filter(EnergyHourly.house_id == house_id)
+
+            self.filter_query_by_date_range(EnergyHourly)
+
+            totals = self.base_query.one()
+
+            self.json_totals = {'actual': totals.sum_actual}
 
     def get_items(self):
         """ Get and store rows from database. """
 
-        items = self.group_query_by_interval(EnergyMonthly)
-
         self.json_items = []
-        for item in items:
-            data = {'date': str(item.date),
-                    'actual': item.sum_actual,
-                    'estimated': item.sum_estimated}
-            self.json_items.append(data)
+
+        if ('year' in self.args['interval']) or ('month' in self.args['interval']):
+            items = self.group_query_by_interval(EnergyMonthly)
+            for item in items:
+                data = {'date': str(item.date),
+                        'actual': item.sum_actual,
+                        'estimated': item.sum_estimated}
+                self.json_items.append(data)
+
+        elif ('day' in self.args['interval']) or ('hour' in self.args['interval']):
+            items = self.group_query_by_interval(EnergyHourly)
+            for item in items:
+                data = {'date': str(item.date),
+                        'actual': item.sum_actual}
+                self.json_items.append(data)
 
     def get_response(self):
         """ Return response in json format. """
@@ -323,6 +344,20 @@ class ViewGeneration(View):
                            max_solar_day=self.max_solar[1],
                            totals=self.json_totals,
                            months=self.json_items)
+
+        if 'day' in self.args['interval']:
+            return jsonify(view='generation',
+                           max_solar_hour=self.max_solar[0],
+                           max_solar_day=self.max_solar[1],
+                           totals=self.json_totals,
+                           days=self.json_items)
+
+        if 'hour' in self.args['interval']:
+            return jsonify(view='generation',
+                           max_solar_hour=self.max_solar[0],
+                           max_solar_day=self.max_solar[1],
+                           totals=self.json_totals,
+                           hours=self.json_items)
 
 class ViewHdd(View):
     """ Hdd view query and response methods. """
