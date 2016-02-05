@@ -306,7 +306,7 @@ class ViewGeneration(View):
 
         self.base_query = db_session.query(EnergyHourly.date,
                                            label('sum_actual',
-                                                 func.sum(EnergyHourly.solar))).\
+                                                 func.sum(EnergyHourly.solar)/1000)).\
             filter(EnergyHourly.house_id == house_id)
 
         self.filter_query_by_date_range(EnergyHourly)
@@ -639,11 +639,10 @@ class ViewWater(View):
         elif self.args['start'] is None and self.args['end'] is None:
             date_range = ""
 
+        grp = ""
+
         if 'month' in self.args['interval']:
             grp = ", MONTH(e.date) "
-
-        else:
-            grp = ""
 
         sql = """SELECT e.date AS 'date', SUM(main.gallons) -
                     SUM(hot.gallons) AS 'cold', SUM(hot.gallons) AS 'hot',
@@ -791,43 +790,43 @@ class ViewUsage(View):
         """ Get and store summary usage values from database. """
 
         self.base_query = db_session.query(label('used',
-                                                 func.sum(EnergyHourly.used)),
+                                                 func.sum(EnergyHourly.used)/1000),
                                            label('water_heater',
-                                                 func.sum(EnergyHourly.water_heater)),
+                                                 func.sum(EnergyHourly.water_heater)/1000),
                                            label('ashp',
-                                                 func.sum(EnergyHourly.ashp)),
+                                                 func.sum(EnergyHourly.ashp)/1000),
                                            label('water_pump',
-                                                 func.sum(EnergyHourly.water_pump)),
+                                                 func.sum(EnergyHourly.water_pump)/1000),
                                            label('dryer',
-                                                 func.sum(EnergyHourly.dryer)),
+                                                 func.sum(EnergyHourly.dryer)/1000),
                                            label('washer',
-                                                 func.sum(EnergyHourly.washer)),
+                                                 func.sum(EnergyHourly.washer)/1000),
                                            label('dishwasher',
-                                                 func.sum(EnergyHourly.dishwasher)),
+                                                 func.sum(EnergyHourly.dishwasher)/1000),
                                            label('stove',
-                                                 func.sum(EnergyHourly.stove)),
+                                                 func.sum(EnergyHourly.stove)/1000),
                                            label('refrigerator',
-                                                 func.sum(EnergyHourly.refrigerator)),
+                                                 func.sum(EnergyHourly.refrigerator)/1000),
                                            label('living_room',
-                                                 func.sum(EnergyHourly.living_room)),
+                                                 func.sum(EnergyHourly.living_room)/1000),
                                            label('aux_heat_bedrooms',
-                                                 func.sum(EnergyHourly.aux_heat_bedrooms)),
+                                                 func.sum(EnergyHourly.aux_heat_bedrooms)/1000),
                                            label('aux_heat_living',
-                                                 func.sum(EnergyHourly.aux_heat_living)),
+                                                 func.sum(EnergyHourly.aux_heat_living)/1000),
                                            label('study',
-                                                 func.sum(EnergyHourly.study)),
+                                                 func.sum(EnergyHourly.study)/1000),
                                            label('barn',
-                                                 func.sum(EnergyHourly.barn)),
+                                                 func.sum(EnergyHourly.barn)/1000),
                                            label('basement_west',
-                                                 func.sum(EnergyHourly.basement_west)),
+                                                 func.sum(EnergyHourly.basement_west)/1000),
                                            label('basement_east',
-                                                 func.sum(EnergyHourly.basement_east)),
+                                                 func.sum(EnergyHourly.basement_east)/1000),
                                            label('ventilation',
-                                                 func.sum(EnergyHourly.ventilation)),
+                                                 func.sum(EnergyHourly.ventilation)/1000),
                                            label('ventilation_preheat',
-                                                 func.sum(EnergyHourly.ventilation_preheat)),
+                                                 func.sum(EnergyHourly.ventilation_preheat)/1000),
                                            label('kitchen_recept_rt',
-                                                 func.sum(EnergyHourly.kitchen_recept_rt))).\
+                                                 func.sum(EnergyHourly.kitchen_recept_rt)/1000)).\
             filter(EnergyHourly.house_id == house_id).\
             filter(or_(EnergyHourly.device_id == 5,
                        EnergyHourly.device_id == 10))
@@ -907,7 +906,7 @@ class ViewUsage(View):
         self.base_query = db_session.query(label('date',
                                                  EnergyHourly.date),
                                            label('actual',
-                                                 func.sum(EnergyHourly.used))).\
+                                                 func.sum(EnergyHourly.used)/1000)).\
             filter(EnergyHourly.house_id == house_id)
 
         self.filter_query_by_date_range(EnergyHourly)
@@ -945,7 +944,7 @@ class ViewUsage(View):
         elif self.args['start'] is None and self.args['end'] is None:
             date_range = ""
 
-        sql = """SELECT e.date AS 'date', SUM(e.ashp)/1000 AS 'actual',
+        sql = """SELECT e.date AS 'date', SUM(e.ashp)/1000.0 AS 'actual',
                   SUM( IF( ((:base - t.temperature) / 24) > 0,
                   ((:base - t.temperature) / 24), 0) ) AS 'hdd'
                  FROM temperature_hourly t, energy_hourly e
@@ -1002,43 +1001,43 @@ class ViewUsage(View):
         self.base_query = db_session.\
                           query(label('date', EnergyHourly.date),
                                 label('actual',
-                                      func.sum(EnergyHourly.used) -
+                                      func.sum(EnergyHourly.used)/1000 -
                                       func.sum(func.IF(EnergyHourly.water_heater != None,
-                                                       EnergyHourly.water_heater, 0)) -
+                                                       EnergyHourly.water_heater/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.ashp != None,
-                                                       EnergyHourly.ashp, 0)) -
+                                                       EnergyHourly.ashp/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.water_pump != None,
-                                                       EnergyHourly.water_pump, 0)) -
+                                                       EnergyHourly.water_pump/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.dryer != None,
-                                                       EnergyHourly.dryer, 0)) -
+                                                       EnergyHourly.dryer/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.washer != None,
-                                                       EnergyHourly.washer, 0)) -
+                                                       EnergyHourly.washer/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.dishwasher != None,
-                                                       EnergyHourly.dishwasher, 0)) -
+                                                       EnergyHourly.dishwasher/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.stove != None,
-                                                       EnergyHourly.stove, 0)) -
+                                                       EnergyHourly.stove/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.refrigerator != None,
-                                                       EnergyHourly.refrigerator, 0)) -
+                                                       EnergyHourly.refrigerator/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.living_room != None,
-                                                       EnergyHourly.living_room, 0)) -
+                                                       EnergyHourly.living_room/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.aux_heat_bedrooms != None,
-                                                       EnergyHourly.aux_heat_bedrooms, 0)) -
+                                                       EnergyHourly.aux_heat_bedrooms/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.aux_heat_living != None,
-                                                       EnergyHourly.aux_heat_living, 0)) -
+                                                       EnergyHourly.aux_heat_living/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.study != None,
-                                                       EnergyHourly.study, 0)) -
+                                                       EnergyHourly.study/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.barn != None,
-                                                       EnergyHourly.barn, 0)) -
+                                                       EnergyHourly.barn/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.basement_west != None,
-                                                       EnergyHourly.basement_west, 0)) -
+                                                       EnergyHourly.basement_west/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.basement_east != None,
-                                                       EnergyHourly.basement_east, 0)) -
+                                                       EnergyHourly.basement_east/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.ventilation != None,
-                                                       EnergyHourly.ventilation, 0)) -
+                                                       EnergyHourly.ventilation/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.ventilation_preheat != None,
-                                                       EnergyHourly.ventilation_preheat, 0)) -
+                                                       EnergyHourly.ventilation_preheat/1000, 0)) -
                                       func.sum(func.IF(EnergyHourly.kitchen_recept_rt != None, \
-                                                       EnergyHourly.kitchen_recept_rt, 0)))).\
+                                                       EnergyHourly.kitchen_recept_rt/1000, 0)))).\
             filter(EnergyHourly.house_id == house_id).\
             filter(or_(EnergyHourly.device_id == 5,
                        EnergyHourly.device_id == 10))
@@ -1067,7 +1066,7 @@ class ViewUsage(View):
         self.base_query = db_session.\
                           query(label('date', EnergyHourly.date),
                                 label('actual',
-                                      func.sum(getattr(EnergyHourly, circuit)))
+                                      func.sum(getattr(EnergyHourly, circuit))/1000)
                                ).\
             filter(EnergyHourly.house_id == house_id).\
             filter(or_(EnergyHourly.device_id == 5,
