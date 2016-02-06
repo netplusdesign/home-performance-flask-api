@@ -267,7 +267,7 @@ class ViewGeneration(View):
 
             max_solar_query = db_session.query(table.date,
                                                label('max_solar', table.solar)).\
-                filter(table.solar == sub_query).one()
+                filter(table.solar == sub_query).first()
 
             self.max_solar.append({'date': str(max_solar_query.date),
                                    'solar': max_solar_query.max_solar})
