@@ -903,11 +903,16 @@ class ViewUsage(View):
     def get_circuit_all_day_hour(self, house_id):
         """ Get and store all circuit usage total for daily or hourly. """
 
-        self.base_query = db_session.query(label('date',
-                                                 func.date(EnergyHourly.date)),
-                                           label('actual',
+        self.base_query = db_session.query(label('actual',
                                                  func.sum(EnergyHourly.used)/1000)).\
             filter(EnergyHourly.house_id == house_id)
+
+        if 'hour' in self.args['interval']:
+            self.base_query = self.base_query.\
+                        add_column(label('date', EnergyHourly.date))
+        else:
+            self.base_query = self.base_query.\
+                        add_column(label('date', func.date(EnergyHourly.date)))
 
         self.filter_query_by_date_range(EnergyHourly)
 
@@ -944,7 +949,12 @@ class ViewUsage(View):
         elif self.args['start'] is None and self.args['end'] is None:
             date_range = ""
 
-        sql = """SELECT DATE(e.date) AS 'date', SUM(e.ashp)/1000.0 AS 'actual',
+        dt = "e.date"
+
+        if self.args['interval'] is not 'hour':
+            dt = "DATE(e.date)"
+
+        sql = """SELECT %s AS 'date', SUM(e.ashp)/1000.0 AS 'actual',
                   SUM( IF( ((:base - t.temperature) / 24) > 0,
                   ((:base - t.temperature) / 24), 0) ) AS 'hdd'
                  FROM temperature_hourly t, energy_hourly e
@@ -954,7 +964,7 @@ class ViewUsage(View):
                   AND (e.device_id = 5 OR e.device_id = 10)
                   %s
                   AND e.date = t.date
-             """ % date_range
+             """ % (dt, date_range)
 
         totals = session.from_statement(text(sql))
         totals = totals.params(house_id=house_id,
@@ -998,9 +1008,8 @@ class ViewUsage(View):
     def get_circuit_all_other(self, house_id):
         """ Get and store all other unmonitored circuits total and by interval from database. """
 
-        self.base_query = db_session.\
-                          query(label('date', func.date(EnergyHourly.date)),
-                                label('actual',
+        self.base_query =  db_session.\
+                          query(label('actual',
                                       func.sum(EnergyHourly.used)/1000 -
                                       func.sum(func.IF(EnergyHourly.water_heater != None,
                                                        EnergyHourly.water_heater/1000, 0)) -
@@ -1042,6 +1051,13 @@ class ViewUsage(View):
             filter(or_(EnergyHourly.device_id == 5,
                        EnergyHourly.device_id == 10))
 
+        if 'hour' in self.args['interval']:
+            self.base_query = self.base_query.\
+                        add_column(label('date', EnergyHourly.date))
+        else:
+            self.base_query = self.base_query.\
+                        add_column(label('date', func.date(EnergyHourly.date)))
+
         self.filter_query_by_date_range(EnergyHourly)
 
         totals = self.base_query.one()
@@ -1064,13 +1080,19 @@ class ViewUsage(View):
         """ Get and store circuit x total and by interval from database. """
 
         self.base_query = db_session.\
-                          query(label('date', func.date(EnergyHourly.date)),
-                                label('actual',
+                          query(label('actual',
                                       func.sum(getattr(EnergyHourly, circuit))/1000)
                                ).\
             filter(EnergyHourly.house_id == house_id).\
             filter(or_(EnergyHourly.device_id == 5,
                        EnergyHourly.device_id == 10))
+
+        if 'hour' in self.args['interval']:
+            self.base_query = self.base_query.\
+                        add_column(label('date', EnergyHourly.date))
+        else:
+            self.base_query = self.base_query.\
+                        add_column(label('date', func.date(EnergyHourly.date)))
 
         self.filter_query_by_date_range(EnergyHourly)
 
