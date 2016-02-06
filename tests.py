@@ -261,6 +261,22 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['circuit']['name'] == 'Water heater'
         assert json_rv['circuit']['description'] == ''
 
+    def test_views_usage_days_water_heater(self):
+        rv = self.app.get('/api/houses/0/views/usage/?interval=days&start=2013-05-01&duration=1month&circuit=water_heater')
+        json_rv = json.loads(rv.data)
+        assert json_rv['view'] == 'usage.water_heater'
+        assert len(json_rv['days']) == 31
+        assert json_rv['totals']['actual'] == 170.651
+        assert json_rv['days'][0]['date'] == '2013-05-01'
+
+    def test_views_usage_hours_water_heater(self):
+        rv = self.app.get('/api/houses/0/views/usage/?interval=hours&start=2013-01-01&duration=3days&circuit=water_heater')
+        json_rv = json.loads(rv.data)
+        assert json_rv['view'] == 'usage.water_heater'
+        assert len(json_rv['hours']) == 72
+        assert json_rv['totals']['actual'] == 25.848
+        assert json_rv['hours'][0]['date'] == '2013-01-01 00:00:00'
+
     def test_views_usage_months_water_pump(self):
         rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=water_pump')
         json_rv = json.loads(rv.data)
