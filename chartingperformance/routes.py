@@ -14,6 +14,7 @@ from chartingperformance.views import ViewSummary
 from chartingperformance.views import ViewGeneration
 from chartingperformance.views import ViewUsage
 from chartingperformance.views import ViewHdd
+from chartingperformance.views import ViewTemperature
 from chartingperformance.views import ViewWater
 from chartingperformance.views import ViewBasetemp
 from chartingperformance.views import ViewHeatmap
@@ -57,7 +58,7 @@ def get_circuits(house_id):
 @app.route('/api/houses/<house_id>/views/', methods=['GET'])
 def views(house_id):
     """ Return list of available views for house X. """
-    
+
     return jsonify(views=get_views(house_id))
 
 @app.route('/api/houses/<house_id>/views/default/', methods=['GET'])
@@ -104,6 +105,14 @@ def view_hdd(house_id):
     """ Return hdd view for house X. """
 
     view = ViewHdd(request.args, house_id)
+
+    return view.get_response()
+
+@app.route('/api/houses/<house_id>/views/temperature/', methods=['GET'])
+def view_temperature(house_id):
+    """ Return temperature view for house X. """
+
+    view = ViewTemperature(request.args, house_id)
 
     return view.get_response()
 
@@ -220,7 +229,7 @@ def get_limits(house_id):
 
 def get_views(house_id):
     """  Return list of endpoints """
-    
+
     return [
         url_for('setup', house_id=house_id, _external=True),
         url_for('view_summary', house_id=house_id, _external=True),

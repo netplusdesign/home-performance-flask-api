@@ -32,7 +32,7 @@ class View(object):
             self.args = self.set_args(args)
         else:
             self.success = False
-            self.error = { 'error':'No arguments found.' }
+            self.error = {'error':'No arguments found.'}
         self.base_query = None
 
     def filter_query_by_date_range(self, table):
@@ -78,6 +78,13 @@ class View(object):
                                        func.month(table.date),
                                        func.day(table.date))
 
+        elif 'hour' in self.args['interval']:
+            self.base_query = self.base_query.\
+                              group_by(func.year(table.date),
+                                       func.month(table.date),
+                                       func.day(table.date),
+                                       func.hour(table.date))
+
         self.base_query = self.base_query.order_by(table.date)
 
         return self.base_query
@@ -105,11 +112,14 @@ class View(object):
 
         base = args.get('base', '65')
 
+        location = args.get('location', '0')
+
         return {'interval': interval,
                 'start': start,
                 'end': end,
                 'circuit': circuit,
-                'base': base}
+                'base': base,
+                'location': location}
 
     @classmethod
     def validate_interval(cls, interval, valid_options):
@@ -161,7 +171,7 @@ class ViewSummary(View):
             hdd_table = HDDMonthly
             div = 1
 
-            if 'day' in self.args['interval']:
+            if 'day' in self.args['interval'] or 'hour' in self.args['interval']:
                 energy_table = EnergyHourly
                 hdd_table = HDDHourly
                 div = 1000
@@ -173,9 +183,9 @@ class ViewSummary(View):
                                     label('sum_adjusted_load', func.sum(energy_table.adjusted_load)/div),
                                     label('sum_hdd', func.sum(hdd_table.hdd))).\
                 outerjoin(hdd_table, and_(energy_table.date == hdd_table.date,
-                                            energy_table.house_id == hdd_table.house_id)).\
-                filter(energy_table.house_id == house_id) 
-    
+                                          energy_table.house_id == hdd_table.house_id)).\
+                filter(energy_table.house_id == house_id)
+
             self.get_totals(energy_table)
             self.get_items(energy_table)
 
@@ -227,6 +237,11 @@ class ViewSummary(View):
                            totals=self.json_totals,
                            days=self.json_items)
 
+        if 'hour' in self.args['interval']:
+            return jsonify(view='summary',
+                           totals=self.json_totals,
+                           hours=self.json_items)
+
 class ViewGeneration(View):
     """ Genration view query and response methods. """
 
@@ -252,13 +267,22 @@ class ViewGeneration(View):
 
             max_solar_query = db_session.query(table.date,
                                                label('max_solar', table.solar)).\
-                filter(table.solar == sub_query).one()
+                filter(table.solar == sub_query).first()
 
             self.max_solar.append({'date': str(max_solar_query.date),
                                    'solar': max_solar_query.max_solar})
 
     def get_totals(self, house_id):
         """ Get and store totals from database. """
+
+        if ('year' in self.args['interval']) or ('month' in self.args['interval']):
+            self.get_totals_year_month(house_id)
+
+        elif ('day' in self.args['interval']) or ('hour' in self.args['interval']):
+            self.get_totals_day_hour(house_id)
+
+    def get_totals_year_month(self, house_id):
+        """ Get and store yearly or monthly totals. """
 
         self.base_query = db_session.query(EnergyMonthly.date,
                                            label('sum_actual',
@@ -277,17 +301,39 @@ class ViewGeneration(View):
         self.json_totals = {'actual': totals.sum_actual,
                             'estimated': totals.sum_estimated}
 
+    def get_totals_day_hour(self, house_id):
+        """ Get and store daily or hourly totals. """
+
+        self.base_query = db_session.query(EnergyHourly.date,
+                                           label('sum_actual',
+                                                 func.sum(EnergyHourly.solar)/1000)).\
+            filter(EnergyHourly.house_id == house_id)
+
+        self.filter_query_by_date_range(EnergyHourly)
+
+        totals = self.base_query.one()
+
+        self.json_totals = {'actual': totals.sum_actual}
+
     def get_items(self):
         """ Get and store rows from database. """
 
-        items = self.group_query_by_interval(EnergyMonthly)
-
         self.json_items = []
-        for item in items:
-            data = {'date': str(item.date),
-                    'actual': item.sum_actual,
-                    'estimated': item.sum_estimated}
-            self.json_items.append(data)
+
+        if ('year' in self.args['interval']) or ('month' in self.args['interval']):
+            items = self.group_query_by_interval(EnergyMonthly)
+            for item in items:
+                data = {'date': str(item.date),
+                        'actual': item.sum_actual,
+                        'estimated': item.sum_estimated}
+                self.json_items.append(data)
+
+        elif ('day' in self.args['interval']) or ('hour' in self.args['interval']):
+            items = self.group_query_by_interval(EnergyHourly)
+            for item in items:
+                data = {'date': str(item.date),
+                        'actual': item.sum_actual}
+                self.json_items.append(data)
 
     def get_response(self):
         """ Return response in json format. """
@@ -308,6 +354,20 @@ class ViewGeneration(View):
                            max_solar_day=self.max_solar[1],
                            totals=self.json_totals,
                            months=self.json_items)
+
+        if 'day' in self.args['interval']:
+            return jsonify(view='generation',
+                           max_solar_hour=self.max_solar[0],
+                           max_solar_day=self.max_solar[1],
+                           totals=self.json_totals,
+                           days=self.json_items)
+
+        if 'hour' in self.args['interval']:
+            return jsonify(view='generation',
+                           max_solar_hour=self.max_solar[0],
+                           max_solar_day=self.max_solar[1],
+                           totals=self.json_totals,
+                           hours=self.json_items)
 
 class ViewHdd(View):
     """ Hdd view query and response methods. """
@@ -386,7 +446,7 @@ class ViewHdd(View):
                                 label('sum_estimated',
                                       func.sum(EstimatedMonthly.hdd))).\
             outerjoin(EstimatedMonthly, and_(HDDMonthly.date == EstimatedMonthly.date,
-                                              HDDMonthly.house_id == EstimatedMonthly.house_id)).\
+                                             HDDMonthly.house_id == EstimatedMonthly.house_id)).\
             filter(HDDMonthly.house_id == house_id)
 
         self.filter_query_by_date_range(HDDMonthly)
@@ -432,6 +492,82 @@ class ViewHdd(View):
                            totals=self.json_totals,
                            months=self.json_items)
 
+class ViewTemperature(View):
+    """ Temperature view query and response methods. """
+
+    def __init__(self, args, house_id):
+        super(ViewTemperature, self).__init__(args)
+        if self.success:
+            self.get_totals(house_id)
+            self.get_items()
+
+    def get_totals(self, house_id):
+        """ Get and store totals from database. """
+
+        self.base_query = db_session.\
+                          query(TemperatureHourly.date,
+                                label('min_temperature',
+                                      func.min(TemperatureHourly.temperature)),
+                                label('max_temperature',
+                                      func.max(TemperatureHourly.temperature)),
+                                label('avg_temperature',
+                                      func.avg(TemperatureHourly.temperature)),
+                                label('sum_hdd',
+                                      func.sum(HDDHourly.hdd))).\
+            outerjoin(HDDHourly, and_(HDDHourly.date == TemperatureHourly.date,
+                                      HDDHourly.house_id == TemperatureHourly.house_id)).\
+            filter(and_(TemperatureHourly.house_id == house_id,
+                        TemperatureHourly.device_id == self.args['location']))
+
+        self.filter_query_by_date_range(TemperatureHourly)
+
+        totals = self.base_query.one()
+
+        self.json_totals = {'min_temperature': totals.min_temperature,
+                            'max_temperature': totals.max_temperature,
+                            'avg_temperature': totals.avg_temperature,
+                            'sum_hdd': totals.sum_hdd}
+
+    def get_items(self):
+        """ Get and store rows from database. """
+
+        items = self.group_query_by_interval(TemperatureHourly)
+
+        self.json_items = []
+        for item in items:
+            data = {'date': str(item.date),
+                    'min_temperature': item.min_temperature,
+                    'max_temperature': item.max_temperature,
+                    'avg_temperature': item.avg_temperature,
+                    'sum_hdd': item.sum_hdd}
+            self.json_items.append(data)
+
+    def get_response(self):
+        """ Return response in json format. """
+
+        if not self.success:
+            return jsonify(self.error)
+
+        if 'year' in self.args['interval']:
+            return jsonify(view='temperature',
+                           totals=self.json_totals,
+                           years=self.json_items)
+
+        if 'month' in self.args['interval']:
+            return jsonify(view='temperature',
+                           totals=self.json_totals,
+                           months=self.json_items)
+
+        if 'day' in self.args['interval']:
+            return jsonify(view='temperature',
+                           totals=self.json_totals,
+                           days=self.json_items)
+
+        if 'hour' in self.args['interval']:
+            return jsonify(view='temperature',
+                           totals=self.json_totals,
+                           hours=self.json_items)
+
 class ViewWater(View):
     """ Water view query and response methods. """
 
@@ -448,27 +584,30 @@ class ViewWater(View):
                                   "water_heater", "water_pump")
 
         if self.args['start'] is not None and self.args['end'] is not None:
-            date_range = " e.date BETWEEN :start AND :end "
+            date_range = " AND e.date BETWEEN :start AND :end "
 
         elif self.args['start'] is not None:
-            date_range = " e.date >= :start "
+            date_range = " AND e.date >= :start "
 
         elif self.args['end'] is not None:
-            date_range = " e.date < :end "
+            date_range = " AND e.date < :end "
+
+        elif self.args['start'] is None and self.args['end'] is None:
+            date_range = ""
 
         sql = """SELECT SUM(main.gallons) - SUM(hot.gallons) AS 'cold',
                     SUM(hot.gallons) AS 'hot', SUM(main.gallons) AS 'main',
                     SUM(e.water_heater) AS 'water_heater',
-                    SUM(e.water_pump) AS 'water_pump' 
-                 FROM energy_monthly e 
+                    SUM(e.water_pump) AS 'water_pump'
+                 FROM energy_monthly e
                  LEFT JOIN (SELECT house_id, date, gallons FROM water_monthly
                     WHERE device_id = 6) main ON e.date = main.date
-                     AND main.house_id = e.house_id 
+                     AND main.house_id = e.house_id
                  LEFT JOIN (SELECT house_id, date, gallons FROM water_monthly
                     WHERE device_id = 7) hot ON e.date = hot.date
                       AND hot.house_id = e.house_id
                  WHERE e.house_id = :house_id
-                 AND %s
+                 %s
              """ % date_range
 
         totals = totals.from_statement(text(sql))
@@ -489,31 +628,39 @@ class ViewWater(View):
                                  "water_heater", "water_pump")
 
         if self.args['start'] is not None and self.args['end'] is not None:
-            date_range = " e.date BETWEEN :start AND :end "
+            date_range = " AND (e.date BETWEEN :start AND :end) "
 
         elif self.args['start'] is not None:
-            date_range = " e.date >= :start "
+            date_range = " AND e.date >= :start "
 
         elif self.args['end'] is not None:
-            date_range = " e.date < :end "
+            date_range = " AND e.date < :end "
+
+        elif self.args['start'] is None and self.args['end'] is None:
+            date_range = ""
+
+        grp = ""
+
+        if 'month' in self.args['interval']:
+            grp = ", MONTH(e.date) "
 
         sql = """SELECT e.date AS 'date', SUM(main.gallons) -
                     SUM(hot.gallons) AS 'cold', SUM(hot.gallons) AS 'hot',
                     SUM(main.gallons) AS 'main',
                     SUM(e.water_heater) AS 'water_heater',
-                    SUM(e.water_pump) AS 'water_pump' 
-                 FROM energy_monthly e 
+                    SUM(e.water_pump) AS 'water_pump'
+                 FROM energy_monthly e
                  LEFT JOIN (SELECT house_id, date, gallons FROM water_monthly
                     WHERE device_id = 6) main ON e.date = main.date
-                        AND main.house_id = e.house_id 
+                        AND main.house_id = e.house_id
                  LEFT JOIN (SELECT house_id, date, gallons FROM water_monthly
                     WHERE device_id = 7) hot ON e.date = hot.date
                         AND hot.house_id = e.house_id
                  WHERE e.house_id = :house_id
-                 AND %s
-                 GROUP BY YEAR(e.date), MONTH(e.date)
+                 %s
+                 GROUP BY YEAR(e.date) %s
                  ORDER BY e.date
-             """ % date_range
+             """ % (date_range, grp)
 
         items = items.from_statement(text(sql))
         items = items.params(house_id=house_id,
@@ -569,7 +716,7 @@ class ViewBasetemp(View):
         elif self.args['end'] is not None:
             date_range = " date < :end "
 
-        if self.args['interval'] == 'hour':
+        if 'hour' in self.args['interval']:
             sql = "SELECT e.date AS 'date', t.hdd AS 'hdd', e.ashp/1000.0 AS 'ashp', t.temperature AS 'temperature', e.solar/1000.0 AS 'solar' "
 
         else:
@@ -623,19 +770,19 @@ class ViewUsage(View):
         if self.success:
 
             self.circuits = CircuitDict(house_id)
-    
+
             if self.args['circuit'] == 'summary':
                 self.get_summary(house_id)
-    
+
             elif self.args['circuit'] == 'all':
                 self.get_circuit_all(house_id)
-    
+
             elif self.args['circuit'] == 'ashp':
                 self.get_circuit_ashp(house_id)
-    
+
             elif self.args['circuit'] == 'all_other':
                 self.get_circuit_all_other(house_id)
-    
+
             else:
                 self.get_circuit_x(house_id, self.args['circuit'])
 
@@ -643,48 +790,48 @@ class ViewUsage(View):
         """ Get and store summary usage values from database. """
 
         self.base_query = db_session.query(label('used',
-                                                 func.sum(EnergyDaily.used)),
+                                                 func.sum(EnergyHourly.used)/1000),
                                            label('water_heater',
-                                                 func.sum(EnergyDaily.water_heater)),
+                                                 func.sum(EnergyHourly.water_heater)/1000),
                                            label('ashp',
-                                                 func.sum(EnergyDaily.ashp)),
+                                                 func.sum(EnergyHourly.ashp)/1000),
                                            label('water_pump',
-                                                 func.sum(EnergyDaily.water_pump)),
+                                                 func.sum(EnergyHourly.water_pump)/1000),
                                            label('dryer',
-                                                 func.sum(EnergyDaily.dryer)),
+                                                 func.sum(EnergyHourly.dryer)/1000),
                                            label('washer',
-                                                 func.sum(EnergyDaily.washer)),
+                                                 func.sum(EnergyHourly.washer)/1000),
                                            label('dishwasher',
-                                                 func.sum(EnergyDaily.dishwasher)),
+                                                 func.sum(EnergyHourly.dishwasher)/1000),
                                            label('stove',
-                                                 func.sum(EnergyDaily.stove)),
+                                                 func.sum(EnergyHourly.stove)/1000),
                                            label('refrigerator',
-                                                 func.sum(EnergyDaily.refrigerator)),
+                                                 func.sum(EnergyHourly.refrigerator)/1000),
                                            label('living_room',
-                                                 func.sum(EnergyDaily.living_room)),
+                                                 func.sum(EnergyHourly.living_room)/1000),
                                            label('aux_heat_bedrooms',
-                                                 func.sum(EnergyDaily.aux_heat_bedrooms)),
+                                                 func.sum(EnergyHourly.aux_heat_bedrooms)/1000),
                                            label('aux_heat_living',
-                                                 func.sum(EnergyDaily.aux_heat_living)),
+                                                 func.sum(EnergyHourly.aux_heat_living)/1000),
                                            label('study',
-                                                 func.sum(EnergyDaily.study)),
+                                                 func.sum(EnergyHourly.study)/1000),
                                            label('barn',
-                                                 func.sum(EnergyDaily.barn)),
+                                                 func.sum(EnergyHourly.barn)/1000),
                                            label('basement_west',
-                                                 func.sum(EnergyDaily.basement_west)),
+                                                 func.sum(EnergyHourly.basement_west)/1000),
                                            label('basement_east',
-                                                 func.sum(EnergyDaily.basement_east)),
+                                                 func.sum(EnergyHourly.basement_east)/1000),
                                            label('ventilation',
-                                                 func.sum(EnergyDaily.ventilation)),
+                                                 func.sum(EnergyHourly.ventilation)/1000),
                                            label('ventilation_preheat',
-                                                 func.sum(EnergyDaily.ventilation_preheat)),
+                                                 func.sum(EnergyHourly.ventilation_preheat)/1000),
                                            label('kitchen_recept_rt',
-                                                 func.sum(EnergyDaily.kitchen_recept_rt))).\
-            filter(EnergyDaily.house_id == house_id).\
-            filter(or_(EnergyDaily.device_id == 5,
-                       EnergyDaily.device_id == 10))
+                                                 func.sum(EnergyHourly.kitchen_recept_rt)/1000)).\
+            filter(EnergyHourly.house_id == house_id).\
+            filter(or_(EnergyHourly.device_id == 5,
+                       EnergyHourly.device_id == 10))
 
-        self.filter_query_by_date_range(EnergyDaily)
+        self.filter_query_by_date_range(EnergyHourly)
 
         totals = self.base_query.one()
 
@@ -713,6 +860,15 @@ class ViewUsage(View):
     def get_circuit_all(self, house_id):
         """ Get and store all circuit usage total and by interval from database. """
 
+        if 'year' in self.args['interval'] or 'month' in self.args['interval']:
+            self.get_circuit_all_year_month(house_id)
+
+        elif 'day' in self.args['interval'] or 'hour' in self.args['interval']:
+            self.get_circuit_all_day_hour(house_id)
+
+    def get_circuit_all_year_month(self, house_id):
+        """ Get and store all circuit usage total for yearly or monthly. """
+
         self.base_query = db_session.query(label('date',
                                                  EnergyMonthly.date),
                                            label('actual',
@@ -721,7 +877,7 @@ class ViewUsage(View):
                                                  func.sum(EstimatedMonthly.used))
                                           ). \
             join(EstimatedMonthly, and_(EnergyMonthly.date == EstimatedMonthly.date,
-                                         EnergyMonthly.house_id == EstimatedMonthly.house_id)).\
+                                        EnergyMonthly.house_id == EstimatedMonthly.house_id)).\
             filter(EnergyMonthly.house_id == house_id)
 
         self.filter_query_by_date_range(EnergyMonthly)
@@ -744,36 +900,71 @@ class ViewUsage(View):
                              'name':  self.get_circuit_info('all')['name'],
                              'description': self.get_circuit_info('all')['description']}
 
+    def get_circuit_all_day_hour(self, house_id):
+        """ Get and store all circuit usage total for daily or hourly. """
+
+        self.base_query = db_session.query(label('actual',
+                                                 func.sum(EnergyHourly.used)/1000)).\
+            filter(EnergyHourly.house_id == house_id)
+
+        if 'hour' in self.args['interval']:
+            self.base_query = self.base_query.\
+                        add_column(label('date', EnergyHourly.date))
+        else:
+            self.base_query = self.base_query.\
+                        add_column(label('date', func.date(EnergyHourly.date)))
+
+        self.filter_query_by_date_range(EnergyHourly)
+
+        totals = self.base_query.one()
+
+        self.json_totals = {'actual': totals.actual}
+
+        items = self.group_query_by_interval(EnergyHourly)
+
+        self.json_items = []
+        for item in items:
+            data = {'date': str(item.date),
+                    'actual': item.actual}
+            self.json_items.append(data)
+
+        self.json_circuit = {'circuit_id': 'all',
+                             'name':  self.get_circuit_info('all')['name'],
+                             'description': self.get_circuit_info('all')['description']}
+
     def get_circuit_ashp(self, house_id):
         """ Get and store ashp usage total and by interval from database. """
 
         session = db_session.query("date", "actual", "hdd")
 
         if self.args['start'] is not None and self.args['end'] is not None:
-            date_range = " (date BETWEEN :start AND :end) "
+            date_range = " AND (e.date BETWEEN :start AND :end) "
 
         elif self.args['start'] is not None:
-            date_range = " date >= :start "
+            date_range = " AND e.date >= :start "
 
         elif self.args['end'] is not None:
-            date_range = " date < :end "
+            date_range = " AND e.date < :end "
 
-        sql = """SELECT e.date AS 'date', SUM(e.ashp) AS 'actual', SUM(t.hdd) AS 'hdd'
-                 FROM 
-                    (SELECT date, SUM( IF( ((:base - temperature) / 24) > 0,
-                        ((:base - temperature) / 24), 0) ) AS 'hdd' 
-                    FROM temperature_hourly
-                    WHERE house_id = :house_id
-                        AND %s
-                        AND device_id = 0 
-                    GROUP BY MONTH(date), DAY(date) ) t,
-                    (SELECT date, ashp
-                    FROM energy_daily 
-                    WHERE house_id = :house_id
-                        AND %s
-                        AND (device_id = 5 OR device_id = 10) ) e
-                WHERE t.date = e.date
-            """ % (date_range, date_range)
+        elif self.args['start'] is None and self.args['end'] is None:
+            date_range = ""
+
+        dt = "e.date"
+
+        if self.args['interval'] is not 'hour':
+            dt = "DATE(e.date)"
+
+        sql = """SELECT %s AS 'date', SUM(e.ashp)/1000.0 AS 'actual',
+                  SUM( IF( ((:base - t.temperature) / 24) > 0,
+                  ((:base - t.temperature) / 24), 0) ) AS 'hdd'
+                 FROM temperature_hourly t, energy_hourly e
+                 WHERE t.device_id = 0
+                  AND t.house_id = :house_id
+                  AND e.house_id = :house_id
+                  AND (e.device_id = 5 OR e.device_id = 10)
+                  %s
+                  AND e.date = t.date
+             """ % (dt, date_range)
 
         totals = session.from_statement(text(sql))
         totals = totals.params(house_id=house_id,
@@ -784,31 +975,18 @@ class ViewUsage(View):
         self.json_totals = {'actual': totals.actual,
                             'hdd': totals.hdd}
 
-        if self.args['start'] is not None and self.args['end'] is not None:
-            date_range = "date BETWEEN :start AND :end "
-            date_range_t = "t." + date_range
+        grp = ""
 
-        elif self.args['start'] is not None:
-            date_range = "date >= :start "
-            date_range_t = "t." + date_range
+        if 'month' in self.args['interval']:
+            grp = ", MONTH(e.date) "
 
-        elif self.args['end'] is not None:
-            date_range = "date < :end "
-            date_range_t = "t." + date_range
+        elif 'day' in self.args['interval']:
+            grp = ", MONTH(e.date), DAY(e.date) "
 
-        sql = """SELECT e.date AS 'date', e.ashp AS 'actual',
-                    SUM( IF( ((:base - t.temperature) / 24) > 0,
-                    ((:base - t.temperature) / 24), 0) ) AS 'hdd' 
-                 FROM temperature_hourly t, 
-                    (SELECT date, ashp FROM energy_monthly
-                     WHERE house_id = :house_id AND %s
-                     AND (device_id = 5 OR device_id = 10)) e 
-                 WHERE t.device_id = 0 
-                    AND t.house_id = :house_id
-                    AND %s
-                    AND MONTH(e.date) = MONTH(t.date)
-                 GROUP BY YEAR(t.date), MONTH(t.date)
-             """ % (date_range, date_range_t)
+        elif 'hour' in self.args['interval']:
+            grp = ", MONTH(e.date), DAY(e.date), HOUR(e.date) "
+
+        sql = sql + " GROUP BY YEAR(e.date)" + grp
 
         items = session.from_statement(text(sql))
         items = items.params(house_id=house_id,
@@ -830,57 +1008,63 @@ class ViewUsage(View):
     def get_circuit_all_other(self, house_id):
         """ Get and store all other unmonitored circuits total and by interval from database. """
 
-        self.base_query = db_session.\
-                          query(label('date', EnergyDaily.date),
-                                label('actual',
-                                      func.sum(EnergyDaily.used) -
-                                      func.sum(func.IF(EnergyDaily.water_heater != None,
-                                                       EnergyDaily.water_heater, 0)) -
-                                      func.sum(func.IF(EnergyDaily.ashp != None,
-                                                       EnergyDaily.ashp, 0)) -
-                                      func.sum(func.IF(EnergyDaily.water_pump != None,
-                                                       EnergyDaily.water_pump, 0)) -
-                                      func.sum(func.IF(EnergyDaily.dryer != None,
-                                                       EnergyDaily.dryer, 0)) -
-                                      func.sum(func.IF(EnergyDaily.washer != None,
-                                                       EnergyDaily.washer, 0)) -
-                                      func.sum(func.IF(EnergyDaily.dishwasher != None,
-                                                       EnergyDaily.dishwasher, 0)) -
-                                      func.sum(func.IF(EnergyDaily.stove != None,
-                                                       EnergyDaily.stove, 0)) -
-                                      func.sum(func.IF(EnergyDaily.refrigerator != None,
-                                                       EnergyDaily.refrigerator, 0)) -
-                                      func.sum(func.IF(EnergyDaily.living_room != None,
-                                                       EnergyDaily.living_room, 0)) -
-                                      func.sum(func.IF(EnergyDaily.aux_heat_bedrooms != None,
-                                                       EnergyDaily.aux_heat_bedrooms, 0)) -
-                                      func.sum(func.IF(EnergyDaily.aux_heat_living != None,
-                                                       EnergyDaily.aux_heat_living, 0)) -
-                                      func.sum(func.IF(EnergyDaily.study != None,
-                                                       EnergyDaily.study, 0)) -
-                                      func.sum(func.IF(EnergyDaily.barn != None,
-                                                       EnergyDaily.barn, 0)) -
-                                      func.sum(func.IF(EnergyDaily.basement_west != None,
-                                                       EnergyDaily.basement_west, 0)) -
-                                      func.sum(func.IF(EnergyDaily.basement_east != None,
-                                                       EnergyDaily.basement_east, 0)) -
-                                      func.sum(func.IF(EnergyDaily.ventilation != None,
-                                                       EnergyDaily.ventilation, 0)) -
-                                      func.sum(func.IF(EnergyDaily.ventilation_preheat != None,
-                                                       EnergyDaily.ventilation_preheat, 0)) -
-                                      func.sum(func.IF(EnergyDaily.kitchen_recept_rt != None, \
-                                                       EnergyDaily.kitchen_recept_rt, 0)))).\
-            filter(EnergyDaily.house_id == house_id).\
-            filter(or_(EnergyDaily.device_id == 5,
-                       EnergyDaily.device_id == 10))
+        self.base_query =  db_session.\
+                          query(label('actual',
+                                      func.sum(EnergyHourly.used)/1000 -
+                                      func.sum(func.IF(EnergyHourly.water_heater != None,
+                                                       EnergyHourly.water_heater/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.ashp != None,
+                                                       EnergyHourly.ashp/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.water_pump != None,
+                                                       EnergyHourly.water_pump/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.dryer != None,
+                                                       EnergyHourly.dryer/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.washer != None,
+                                                       EnergyHourly.washer/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.dishwasher != None,
+                                                       EnergyHourly.dishwasher/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.stove != None,
+                                                       EnergyHourly.stove/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.refrigerator != None,
+                                                       EnergyHourly.refrigerator/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.living_room != None,
+                                                       EnergyHourly.living_room/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.aux_heat_bedrooms != None,
+                                                       EnergyHourly.aux_heat_bedrooms/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.aux_heat_living != None,
+                                                       EnergyHourly.aux_heat_living/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.study != None,
+                                                       EnergyHourly.study/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.barn != None,
+                                                       EnergyHourly.barn/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.basement_west != None,
+                                                       EnergyHourly.basement_west/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.basement_east != None,
+                                                       EnergyHourly.basement_east/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.ventilation != None,
+                                                       EnergyHourly.ventilation/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.ventilation_preheat != None,
+                                                       EnergyHourly.ventilation_preheat/1000, 0)) -
+                                      func.sum(func.IF(EnergyHourly.kitchen_recept_rt != None, \
+                                                       EnergyHourly.kitchen_recept_rt/1000, 0)))).\
+            filter(EnergyHourly.house_id == house_id).\
+            filter(or_(EnergyHourly.device_id == 5,
+                       EnergyHourly.device_id == 10))
 
-        self.filter_query_by_date_range(EnergyDaily)
+        if 'hour' in self.args['interval']:
+            self.base_query = self.base_query.\
+                        add_column(label('date', EnergyHourly.date))
+        else:
+            self.base_query = self.base_query.\
+                        add_column(label('date', func.date(EnergyHourly.date)))
+
+        self.filter_query_by_date_range(EnergyHourly)
 
         totals = self.base_query.one()
 
         self.json_totals = {'actual': totals.actual}
 
-        items = self.group_query_by_interval(EnergyDaily)
+        items = self.group_query_by_interval(EnergyHourly)
 
         self.json_items = []
         for item in items:
@@ -896,21 +1080,27 @@ class ViewUsage(View):
         """ Get and store circuit x total and by interval from database. """
 
         self.base_query = db_session.\
-                          query(label('date', EnergyDaily.date),
-                                label('actual',
-                                      func.sum(getattr(EnergyDaily, circuit)))
+                          query(label('actual',
+                                      func.sum(getattr(EnergyHourly, circuit))/1000)
                                ).\
-            filter(EnergyDaily.house_id == house_id).\
-            filter(or_(EnergyDaily.device_id == 5,
-                       EnergyDaily.device_id == 10))
+            filter(EnergyHourly.house_id == house_id).\
+            filter(or_(EnergyHourly.device_id == 5,
+                       EnergyHourly.device_id == 10))
 
-        self.filter_query_by_date_range(EnergyDaily)
+        if 'hour' in self.args['interval']:
+            self.base_query = self.base_query.\
+                        add_column(label('date', EnergyHourly.date))
+        else:
+            self.base_query = self.base_query.\
+                        add_column(label('date', func.date(EnergyHourly.date)))
+
+        self.filter_query_by_date_range(EnergyHourly)
 
         totals = self.base_query.one()
 
         self.json_totals = {'actual': totals.actual}
 
-        items = self.group_query_by_interval(EnergyDaily)
+        items = self.group_query_by_interval(EnergyHourly)
 
         self.json_items = []
         for item in items:
@@ -946,35 +1136,123 @@ class ViewUsage(View):
 
         elif self.args['circuit'] == 'all':
 
-            return jsonify(view='usage.all',
-                           interval=self.args['interval'],
-                           circuit=self.json_circuit,
-                           totals=self.json_totals,
-                           months=self.json_items)
+            if 'year' in self.args['interval']:
+                return jsonify(view='usage.all',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               years=self.json_items)
+
+            if 'month' in self.args['interval']:
+                return jsonify(view='usage.all',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               months=self.json_items)
+
+            if 'day' in self.args['interval']:
+                return jsonify(view='usage.all',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               days=self.json_items)
+
+            if 'hour' in self.args['interval']:
+                return jsonify(view='usage.all',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               hours=self.json_items)
 
         elif self.args['circuit'] == 'ashp':
 
-            return jsonify(view='usage.ashp',
-                           interval=self.args['interval'],
-                           circuit=self.json_circuit,
-                           totals=self.json_totals,
-                           months=self.json_items)
+            if 'year' in self.args['interval']:
+                return jsonify(view='usage.ashp',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               years=self.json_items)
+
+            if 'month' in self.args['interval']:
+                return jsonify(view='usage.ashp',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               months=self.json_items)
+
+            if 'day' in self.args['interval']:
+                return jsonify(view='usage.ashp',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               days=self.json_items)
+
+            if 'hour' in self.args['interval']:
+                return jsonify(view='usage.ashp',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               hours=self.json_items)
 
         elif self.args['circuit'] == 'all_other':
 
-            return jsonify(view='usage.all_other',
-                           interval=self.args['interval'],
-                           circuit=self.json_circuit,
-                           totals=self.json_totals,
-                           months=self.json_items)
+            if 'year' in self.args['interval']:
+                return jsonify(view='usage.all_other',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               years=self.json_items)
+
+            if 'month' in self.args['interval']:
+                return jsonify(view='usage.all_other',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               months=self.json_items)
+
+            if 'day' in self.args['interval']:
+                return jsonify(view='usage.all_other',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               days=self.json_items)
+
+            if 'hour' in self.args['interval']:
+                return jsonify(view='usage.all_other',
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               hours=self.json_items)
 
         else:
-            # all other circuits
-            return jsonify(view='usage.' + self.args['circuit'],
-                           interval=self.args['interval'],
-                           circuit=self.json_circuit,
-                           totals=self.json_totals,
-                           months=self.json_items)
+            # x circuit
+            if 'year' in self.args['interval']:
+                return jsonify(view='usage.' + self.args['circuit'],
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               years=self.json_items)
+
+            if 'month' in self.args['interval']:
+                return jsonify(view='usage.' + self.args['circuit'],
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               months=self.json_items)
+
+            if 'day' in self.args['interval']:
+                return jsonify(view='usage.' + self.args['circuit'],
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               days=self.json_items)
+
+            if 'hour' in self.args['interval']:
+                return jsonify(view='usage.' + self.args['circuit'],
+                               interval=self.args['interval'],
+                               circuit=self.json_circuit,
+                               totals=self.json_totals,
+                               hours=self.json_items)
 
 class ViewChart(View):
     """ Hourly chart view query and response methods. """
@@ -1005,7 +1283,7 @@ class ViewChart(View):
           e.solar AS 'solar', e.used AS 'used',
           ti1.indoor1_deg AS 'first_floor_temp',
           ti2.indoor2_deg AS 'second_floor_temp',
-          ti0.indoor0_deg AS 'basement_temp', 
+          ti0.indoor0_deg AS 'basement_temp',
           tu.outdoor_deg AS 'outdoor_temp', th.hdd AS 'hdd',
           e.water_heater AS 'water_heater', e.ashp AS 'ashp',
           e.water_pump AS 'water_pump', e.dryer AS 'dryer',
@@ -1027,22 +1305,22 @@ class ViewChart(View):
               FROM temperature_hourly
               WHERE device_id = 1) ti1
           LEFT JOIN (SELECT house_id, date, temperature AS 'indoor2_deg'
-                     FROM temperature_hourly WHERE device_id = 2) ti2 
+                     FROM temperature_hourly WHERE device_id = 2) ti2
             ON CAST(LEFT(ti2.date,13) AS DATETIME) = CAST(LEFT(ti1.date,13) AS DATETIME)
                 AND ti2.house_id = ti1.house_id
           LEFT JOIN (SELECT house_id, date, temperature AS 'indoor0_deg'
-                     FROM temperature_hourly WHERE device_id = 3) ti0 
+                     FROM temperature_hourly WHERE device_id = 3) ti0
             ON CAST(LEFT(ti0.date,13) AS DATETIME) = CAST(LEFT(ti1.date,13) AS DATETIME)
                 AND ti0.house_id = ti1.house_id
           LEFT JOIN (SELECT house_id, date, temperature AS 'outdoor_deg'
-                     FROM temperature_hourly WHERE device_id = 0) tu 
+                     FROM temperature_hourly WHERE device_id = 0) tu
             ON CAST(LEFT(tu.date,13) AS DATETIME) = CAST(LEFT(ti1.date,13) AS DATETIME)
                 AND tu.house_id = ti1.house_id
           LEFT JOIN (SELECT house_id, date, hdd
-                     FROM hdd_hourly) th 
+                     FROM hdd_hourly) th
             ON CAST(LEFT(th.date,13) AS DATETIME) = CAST(LEFT(ti1.date,13) AS DATETIME)
                 AND th.house_id = ti1.house_id
-          LEFT JOIN energy_hourly e 
+          LEFT JOIN energy_hourly e
             ON CAST(LEFT(e.date,13) AS DATETIME) = CAST(LEFT(ti1.date,13) AS DATETIME)
                 AND e.house_id = ti1.house_id
         WHERE CAST(ti1.date AS DATE) = DATE(:start)
@@ -1133,7 +1411,7 @@ class ViewHeatmap(View):
         sql = """SELECT tu.date AS 'date', e.adjusted_load AS 'net',
                     e.solar AS 'solar', e.used AS 'used',
                     tu.outdoor_deg_min AS 'outdoor_deg_min',
-                    tu.outdoor_deg_max AS 'outdoor_deg_max',  
+                    tu.outdoor_deg_max AS 'outdoor_deg_max',
                     th.hdd AS 'hdd', e.water_heater AS 'water_heater',
                     e.ashp AS 'ashp', e.water_pump AS 'water_pump',
                     e.dryer AS 'dryer', e.washer AS 'washer',
@@ -1154,12 +1432,12 @@ class ViewHeatmap(View):
                     e.aux_heat_bedrooms + e.aux_heat_living + e.study +
                     e.barn + e.basement_west + e.basement_east +
                     e.ventilation + e.ventilation_preheat +
-                    e.kitchen_recept_rt) AS 'all_other' 
+                    e.kitchen_recept_rt) AS 'all_other'
                  FROM (SELECT house_id, date,
                         temperature_min AS 'outdoor_deg_min',
                         temperature_max AS 'outdoor_deg_max'
                        FROM temperature_daily
-                       WHERE device_id = 0) tu 
+                       WHERE device_id = 0) tu
                     LEFT JOIN (SELECT house_id, date, hdd FROM hdd_daily) th
                         ON th.date = tu.date AND th.house_id = tu.house_id
                     LEFT JOIN energy_daily e ON e.date = tu.date
