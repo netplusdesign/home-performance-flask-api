@@ -187,6 +187,14 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['totals']['actual'] == 880.949
         assert json_rv['months'][0]['date'] == '2013-01-01'
 
+    def test_views_usage_hours_all(self):
+        rv = self.app.get('/api/houses/0/views/usage/?interval=hours&start=2013-05-01&duration=3days&circuit=all')
+        json_rv = json.loads(rv.data)
+        assert json_rv['view'] == 'usage.all'
+        assert len(json_rv['days']) == 31
+        assert json_rv['totals']['actual'] == 880.949
+        assert json_rv['months'][0]['date'] == '2013-01-01'
+
     def test_views_usage_months_ashp(self):
         rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=ashp&base=50')
         json_rv = json.loads(rv.data)

@@ -716,7 +716,7 @@ class ViewBasetemp(View):
         elif self.args['end'] is not None:
             date_range = " date < :end "
 
-        if self.args['interval'] == 'hour':
+        if 'hour' in self.args['interval']:
             sql = "SELECT e.date AS 'date', t.hdd AS 'hdd', e.ashp/1000.0 AS 'ashp', t.temperature AS 'temperature', e.solar/1000.0 AS 'solar' "
 
         else:
