@@ -209,6 +209,26 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['circuit']['name'] == 'ASHP'
         assert json_rv['circuit']['description'] == 'Air-source heat pump'
 
+    def test_views_usage_days_ashp(self):
+        rv = self.app.get('/api/houses/0/views/usage/?interval=days&start=2013-01-01&duration=1month&circuit=ashp&base=50')
+        json_rv = json.loads(rv.data)
+        assert json_rv['view'] == 'usage.ashp'
+        assert len(json_rv['days']) == 31
+        assert json_rv['totals']['actual'] == 282.305
+        assert round(json_rv['totals']['hdd'], 4) == 730.2414
+        assert json_rv['days'][0]['date'] == '2013-01-01'
+        assert json_rv['days'][0]['actual'] == 7.875
+
+    def test_views_usage_hours_ashp(self):
+        rv = self.app.get('/api/houses/0/views/usage/?interval=hours&start=2013-01-01&duration=3days&circuit=ashp&base=50')
+        json_rv = json.loads(rv.data)
+        assert json_rv['view'] == 'usage.ashp'
+        assert len(json_rv['hours']) == 72
+        assert json_rv['totals']['actual'] == 38.290
+        assert round(json_rv['totals']['hdd'], 4) == 106.6046
+        assert json_rv['hours'][0]['date'] == '2013-01-01 00:00:00'
+        assert json_rv['hours'][0]['actual'] == 0
+
     def test_views_usage_months_all_other(self):
         rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=all_other')
         json_rv = json.loads(rv.data)
