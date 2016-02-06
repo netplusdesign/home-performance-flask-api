@@ -904,7 +904,7 @@ class ViewUsage(View):
         """ Get and store all circuit usage total for daily or hourly. """
 
         self.base_query = db_session.query(label('date',
-                                                 EnergyHourly.date),
+                                                 func.date(EnergyHourly.date)),
                                            label('actual',
                                                  func.sum(EnergyHourly.used)/1000)).\
             filter(EnergyHourly.house_id == house_id)
@@ -944,7 +944,7 @@ class ViewUsage(View):
         elif self.args['start'] is None and self.args['end'] is None:
             date_range = ""
 
-        sql = """SELECT e.date AS 'date', SUM(e.ashp)/1000.0 AS 'actual',
+        sql = """SELECT DATE(e.date) AS 'date', SUM(e.ashp)/1000.0 AS 'actual',
                   SUM( IF( ((:base - t.temperature) / 24) > 0,
                   ((:base - t.temperature) / 24), 0) ) AS 'hdd'
                  FROM temperature_hourly t, energy_hourly e
@@ -999,7 +999,7 @@ class ViewUsage(View):
         """ Get and store all other unmonitored circuits total and by interval from database. """
 
         self.base_query = db_session.\
-                          query(label('date', EnergyHourly.date),
+                          query(label('date', func.date(EnergyHourly.date)),
                                 label('actual',
                                       func.sum(EnergyHourly.used)/1000 -
                                       func.sum(func.IF(EnergyHourly.water_heater != None,
@@ -1064,7 +1064,7 @@ class ViewUsage(View):
         """ Get and store circuit x total and by interval from database. """
 
         self.base_query = db_session.\
-                          query(label('date', EnergyHourly.date),
+                          query(label('date', func.date(EnergyHourly.date)),
                                 label('actual',
                                       func.sum(getattr(EnergyHourly, circuit))/1000)
                                ).\
