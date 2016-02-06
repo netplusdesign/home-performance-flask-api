@@ -171,7 +171,7 @@ class ViewSummary(View):
             hdd_table = HDDMonthly
             div = 1
 
-            if 'day' or 'hour' in self.args['interval']:
+            if 'day' in self.args['interval'] or 'hour' in self.args['interval']:
                 energy_table = EnergyHourly
                 hdd_table = HDDHourly
                 div = 1000

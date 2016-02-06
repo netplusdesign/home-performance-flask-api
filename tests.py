@@ -100,6 +100,18 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert len(json_rv['months']) == 4
         assert json_rv['totals']['actual'] == -2465.356
 
+    def test_views_generation_days(self):
+        rv = self.app.get('/api/houses/0/views/generation/?interval=days&start=2013-01-01&duration=1month')
+        json_rv = json.loads(rv.data)
+        assert len(json_rv['days']) == 31
+        assert json_rv['totals']['actual'] == -478.374
+
+    def test_views_generation_hours(self):
+        rv = self.app.get('/api/houses/0/views/generation/?interval=hours&start=2014-01-01&duration=3days')
+        json_rv = json.loads(rv.data)
+        assert len(json_rv['hours']) == 72
+        assert json_rv['totals']['actual'] == -14.660
+
 
     def test_views_hdd_months(self):
         rv = self.app.get('/api/houses/0/views/hdd/?interval=months&start=2013-01-01&duration=4months')
@@ -166,6 +178,14 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['circuit']['circuit_id'] == 'all'
         assert json_rv['circuit']['name'] == 'All monitored circuits'
         assert json_rv['circuit']['description'] == 'Everything that is monitored (alias)'
+
+    def test_views_usage_days_all(self):
+        rv = self.app.get('/api/houses/0/views/usage/?interval=days&start=2013-01-01&duration=1month&circuit=all')
+        json_rv = json.loads(rv.data)
+        assert json_rv['view'] == 'usage.all'
+        assert len(json_rv['days']) == 31
+        assert json_rv['totals']['actual'] == 880.949
+        assert json_rv['months'][0]['date'] == '2013-01-01'
 
     def test_views_usage_months_ashp(self):
         rv = self.app.get('/api/houses/0/views/usage/?interval=months&start=2013-01-01&duration=12months&circuit=ashp&base=50')
