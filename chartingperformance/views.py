@@ -34,6 +34,9 @@ class View(object):
             self.success = False
             self.error = {'error':'No arguments found.'}
         self.base_query = None
+        self.json_totals = None
+        self.json_items = None
+        self.json_circuit = None
 
     def filter_query_by_date_range(self, table):
         """ Return original query plus date range filters. """
@@ -885,10 +888,10 @@ class ViewUsage(View):
         elif self.args['start'] is None and self.args['end'] is None:
             date_range = ""
 
-        dt = "e.date"
+        date_column_format = "e.date"
 
         if self.args['interval'] is not 'hour':
-            dt = "DATE(e.date)"
+            date_column_format = "DATE(e.date)"
 
         sql = """SELECT %s AS 'date', SUM(e.ashp)/1000.0 AS 'actual',
                   SUM( IF( ((:base - t.temperature) / 24) > 0,
@@ -900,7 +903,7 @@ class ViewUsage(View):
                   AND (e.device_id = 5 OR e.device_id = 10)
                   %s
                   AND e.date = t.date
-             """ % (dt, date_range)
+             """ % (date_column_format, date_range)
 
         totals = session.from_statement(text(sql))
         totals = totals.params(house_id=house_id,
@@ -944,7 +947,7 @@ class ViewUsage(View):
     def get_circuit_all_other(self, house_id):
         """ Get and store all other unmonitored circuits total and by interval from database. """
 
-        self.base_query =  db_session.\
+        self.base_query = db_session.\
                           query(label('actual',
                                       func.sum(EnergyHourly.used)/1000 -
                                       func.sum(func.IF(EnergyHourly.water_heater != None,
