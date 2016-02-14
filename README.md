@@ -54,7 +54,13 @@ And, if you've setup test data, you should see a json list of at least one house
 
 ### Run Tests
 
-python `tests.py`
+`python tests.py`
+
+If you install coverage.py you can see the coverage results, currently at 97%.
+
+`coverage run tests.py`
+
+`coverage html` or whichever method you prefer to view the results.
 
 ## Installation -- PythonAnywhere
 

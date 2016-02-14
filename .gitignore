@@ -2,8 +2,10 @@
 
 .project
 
-*.komodoproject
-
 .pydevproject
 
 /env
+
+/htmlcov
+
+.coverage

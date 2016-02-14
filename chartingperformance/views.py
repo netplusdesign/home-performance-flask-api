@@ -34,6 +34,9 @@ class View(object):
             self.success = False
             self.error = {'error':'No arguments found.'}
         self.base_query = None
+        self.json_totals = None
+        self.json_items = None
+        self.json_circuit = None
 
     def filter_query_by_date_range(self, table):
         """ Return original query plus date range filters. """
@@ -222,25 +225,10 @@ class ViewSummary(View):
         if not self.success:
             return jsonify(self.error)
 
-        if 'year' in self.args['interval']:
-            return jsonify(view='summary',
-                           totals=self.json_totals,
-                           years=self.json_items)
-
-        if 'month' in self.args['interval']:
-            return jsonify(view='summary',
-                           totals=self.json_totals,
-                           months=self.json_items)
-
-        if 'day' in self.args['interval']:
-            return jsonify(view='summary',
-                           totals=self.json_totals,
-                           days=self.json_items)
-
-        if 'hour' in self.args['interval']:
-            return jsonify(view='summary',
-                           totals=self.json_totals,
-                           hours=self.json_items)
+        return jsonify(view='summary',
+                       interval=self.args['interval'],
+                       totals=self.json_totals,
+                       items=self.json_items)
 
 class ViewGeneration(View):
     """ Genration view query and response methods. """
@@ -341,33 +329,12 @@ class ViewGeneration(View):
         if not self.success:
             return jsonify(self.error)
 
-        if 'year' in self.args['interval']:
-            return jsonify(view='generation',
-                           max_solar_hour=self.max_solar[0],
-                           max_solar_day=self.max_solar[1],
-                           totals=self.json_totals,
-                           years=self.json_items)
-
-        if 'month' in self.args['interval']:
-            return jsonify(view='generation',
-                           max_solar_hour=self.max_solar[0],
-                           max_solar_day=self.max_solar[1],
-                           totals=self.json_totals,
-                           months=self.json_items)
-
-        if 'day' in self.args['interval']:
-            return jsonify(view='generation',
-                           max_solar_hour=self.max_solar[0],
-                           max_solar_day=self.max_solar[1],
-                           totals=self.json_totals,
-                           days=self.json_items)
-
-        if 'hour' in self.args['interval']:
-            return jsonify(view='generation',
-                           max_solar_hour=self.max_solar[0],
-                           max_solar_day=self.max_solar[1],
-                           totals=self.json_totals,
-                           hours=self.json_items)
+        return jsonify(view='generation',
+                       interval=self.args['interval'],
+                       max_solar_hour=self.max_solar[0],
+                       max_solar_day=self.max_solar[1],
+                       totals=self.json_totals,
+                       items=self.json_items)
 
 class ViewHdd(View):
     """ Hdd view query and response methods. """
@@ -476,21 +443,13 @@ class ViewHdd(View):
         if not self.success:
             return jsonify(self.error)
 
-        if 'year' in self.args['interval']:
-            return jsonify(view='hdd',
-                           coldest_hour=self.json_coldest_hour,
-                           coldest_day=self.json_coldest_day,
-                           iga=self.iga_query.iga,
-                           totals=self.json_totals,
-                           years=self.json_items)
-
-        if 'month' in self.args['interval']:
-            return jsonify(view='hdd',
-                           coldest_hour=self.json_coldest_hour,
-                           coldest_day=self.json_coldest_day,
-                           iga=self.iga_query.iga,
-                           totals=self.json_totals,
-                           months=self.json_items)
+        return jsonify(view='hdd',
+                       interval=self.args['interval'],
+                       coldest_hour=self.json_coldest_hour,
+                       coldest_day=self.json_coldest_day,
+                       iga=self.iga_query.iga,
+                       totals=self.json_totals,
+                       items=self.json_items)
 
 class ViewTemperature(View):
     """ Temperature view query and response methods. """
@@ -548,25 +507,10 @@ class ViewTemperature(View):
         if not self.success:
             return jsonify(self.error)
 
-        if 'year' in self.args['interval']:
-            return jsonify(view='temperature',
-                           totals=self.json_totals,
-                           years=self.json_items)
-
-        if 'month' in self.args['interval']:
-            return jsonify(view='temperature',
-                           totals=self.json_totals,
-                           months=self.json_items)
-
-        if 'day' in self.args['interval']:
-            return jsonify(view='temperature',
-                           totals=self.json_totals,
-                           days=self.json_items)
-
-        if 'hour' in self.args['interval']:
-            return jsonify(view='temperature',
-                           totals=self.json_totals,
-                           hours=self.json_items)
+        return jsonify(view='temperature',
+                       interval=self.args['interval'],
+                       totals=self.json_totals,
+                       items=self.json_items)
 
 class ViewWater(View):
     """ Water view query and response methods. """
@@ -683,15 +627,10 @@ class ViewWater(View):
         if not self.success:
             return jsonify(self.error)
 
-        if 'year' in self.args['interval']:
-            return jsonify(view='water',
-                           totals=self.json_totals,
-                           years=self.json_items)
-
-        if 'month' in self.args['interval']:
-            return jsonify(view='water',
-                           totals=self.json_totals,
-                           months=self.json_items)
+        return jsonify(view='water',
+                       interval=self.args['interval'],
+                       totals=self.json_totals,
+                       items=self.json_items)
 
 class ViewBasetemp(View):
     """ Basetemp analysis view query and response methods. """
@@ -949,10 +888,10 @@ class ViewUsage(View):
         elif self.args['start'] is None and self.args['end'] is None:
             date_range = ""
 
-        dt = "e.date"
+        date_column_format = "e.date"
 
         if self.args['interval'] is not 'hour':
-            dt = "DATE(e.date)"
+            date_column_format = "DATE(e.date)"
 
         sql = """SELECT %s AS 'date', SUM(e.ashp)/1000.0 AS 'actual',
                   SUM( IF( ((:base - t.temperature) / 24) > 0,
@@ -964,7 +903,7 @@ class ViewUsage(View):
                   AND (e.device_id = 5 OR e.device_id = 10)
                   %s
                   AND e.date = t.date
-             """ % (dt, date_range)
+             """ % (date_column_format, date_range)
 
         totals = session.from_statement(text(sql))
         totals = totals.params(house_id=house_id,
@@ -1008,7 +947,7 @@ class ViewUsage(View):
     def get_circuit_all_other(self, house_id):
         """ Get and store all other unmonitored circuits total and by interval from database. """
 
-        self.base_query =  db_session.\
+        self.base_query = db_session.\
                           query(label('actual',
                                       func.sum(EnergyHourly.used)/1000 -
                                       func.sum(func.IF(EnergyHourly.water_heater != None,
@@ -1129,130 +1068,15 @@ class ViewUsage(View):
             return jsonify(self.error)
 
         if self.args['circuit'] == 'summary':
-
-            return jsonify(view='usage.summary',
+            return jsonify(view='usage.' + self.args['circuit'],
                            circuits=self.json_circuits,
                            circuit=self.json_circuit)
 
-        elif self.args['circuit'] == 'all':
-
-            if 'year' in self.args['interval']:
-                return jsonify(view='usage.all',
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               years=self.json_items)
-
-            if 'month' in self.args['interval']:
-                return jsonify(view='usage.all',
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               months=self.json_items)
-
-            if 'day' in self.args['interval']:
-                return jsonify(view='usage.all',
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               days=self.json_items)
-
-            if 'hour' in self.args['interval']:
-                return jsonify(view='usage.all',
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               hours=self.json_items)
-
-        elif self.args['circuit'] == 'ashp':
-
-            if 'year' in self.args['interval']:
-                return jsonify(view='usage.ashp',
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               years=self.json_items)
-
-            if 'month' in self.args['interval']:
-                return jsonify(view='usage.ashp',
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               months=self.json_items)
-
-            if 'day' in self.args['interval']:
-                return jsonify(view='usage.ashp',
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               days=self.json_items)
-
-            if 'hour' in self.args['interval']:
-                return jsonify(view='usage.ashp',
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               hours=self.json_items)
-
-        elif self.args['circuit'] == 'all_other':
-
-            if 'year' in self.args['interval']:
-                return jsonify(view='usage.all_other',
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               years=self.json_items)
-
-            if 'month' in self.args['interval']:
-                return jsonify(view='usage.all_other',
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               months=self.json_items)
-
-            if 'day' in self.args['interval']:
-                return jsonify(view='usage.all_other',
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               days=self.json_items)
-
-            if 'hour' in self.args['interval']:
-                return jsonify(view='usage.all_other',
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               hours=self.json_items)
-
-        else:
-            # x circuit
-            if 'year' in self.args['interval']:
-                return jsonify(view='usage.' + self.args['circuit'],
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               years=self.json_items)
-
-            if 'month' in self.args['interval']:
-                return jsonify(view='usage.' + self.args['circuit'],
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               months=self.json_items)
-
-            if 'day' in self.args['interval']:
-                return jsonify(view='usage.' + self.args['circuit'],
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               days=self.json_items)
-
-            if 'hour' in self.args['interval']:
-                return jsonify(view='usage.' + self.args['circuit'],
-                               interval=self.args['interval'],
-                               circuit=self.json_circuit,
-                               totals=self.json_totals,
-                               hours=self.json_items)
+        return jsonify(view='usage.' + self.args['circuit'],
+                       interval=self.args['interval'],
+                       circuit=self.json_circuit,
+                       totals=self.json_totals,
+                       items=self.json_items)
 
 class ViewChart(View):
     """ Hourly chart view query and response methods. """
