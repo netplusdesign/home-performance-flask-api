@@ -92,6 +92,16 @@ class View(object):
 
         return self.base_query
 
+    def format_date(self, date):
+        """ Return formatted date string based on interval. """
+
+        if 'hour' in self.args['interval']:
+            date_str = date.strftime("%Y-%m-%dT%H:%M:%S")
+        else:
+            date_str = date.strftime("%Y-%m-%d")
+
+        return date_str
+
     def set_args(self, args):
         """ Return dict with parameters included in GET. """
 
@@ -212,7 +222,7 @@ class ViewSummary(View):
 
         self.json_items = []
         for item in items:
-            data = {'date': str(item.date),
+            data = {'date': self.format_date(item.date),
                     'net': item.sum_adjusted_load,
                     'solar': item.sum_solar,
                     'used': item.sum_used,
@@ -319,7 +329,7 @@ class ViewGeneration(View):
         elif ('day' in self.args['interval']) or ('hour' in self.args['interval']):
             items = self.group_query_by_interval(EnergyHourly)
             for item in items:
-                data = {'date': str(item.date),
+                data = {'date': self.format_date(item.date),
                         'actual': item.sum_actual}
                 self.json_items.append(data)
 
@@ -494,7 +504,7 @@ class ViewTemperature(View):
 
         self.json_items = []
         for item in items:
-            data = {'date': str(item.date),
+            data = {'date': self.format_date(item.date),
                     'min_temperature': item.min_temperature,
                     'max_temperature': item.max_temperature,
                     'avg_temperature': item.avg_temperature,
@@ -682,7 +692,7 @@ class ViewBasetemp(View):
 
         self.json_items = []
         for item in items:
-            data = {'date': str(item.date),
+            data = {'date': self.format_date(item.date),
                     'solar': item.solar,
                     'ashp': item.ashp,
                     'temperature': item.temperature,
@@ -863,7 +873,7 @@ class ViewUsage(View):
 
         self.json_items = []
         for item in items:
-            data = {'date': str(item.date),
+            data = {'date': self.format_date(item.date),
                     'actual': item.actual}
             self.json_items.append(data)
 
@@ -935,7 +945,7 @@ class ViewUsage(View):
 
         self.json_items = []
         for item in items:
-            data = {'date': str(item.date),
+            data = {'date': self.format_date(item.date),
                     'actual': item.actual,
                     'hdd': item.hdd}
             self.json_items.append(data)
@@ -1007,7 +1017,7 @@ class ViewUsage(View):
 
         self.json_items = []
         for item in items:
-            data = {'date': str(item.date),
+            data = {'date': self.format_date(item.date),
                     'actual': item.actual}
             self.json_items.append(data)
 
@@ -1043,7 +1053,7 @@ class ViewUsage(View):
 
         self.json_items = []
         for item in items:
-            data = {'date': str(item.date),
+            data = {'date': self.format_date(item.date),
                     'actual': item.actual}
             self.json_items.append(data)
 
