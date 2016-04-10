@@ -669,13 +669,16 @@ class ViewBasetemp(View):
         items = db_session.query("hdd", "ashp", "temperature", "date", "solar")
 
         if self.args['start'] is not None and self.args['end'] is not None:
-            date_range = " date BETWEEN :start AND :end "
+            date_range = " AND date BETWEEN :start AND :end "
 
         elif self.args['start'] is not None:
-            date_range = " date >= :start "
+            date_range = " AND date >= :start "
 
         elif self.args['end'] is not None:
-            date_range = " date < :end "
+            date_range = " AND date < :end "
+
+        elif self.args['start'] is None and self.args['end'] is None:
+            date_range = ""
 
         if 'hour' in self.args['interval']:
             sql = "SELECT e.date AS 'date', t.hdd AS 'hdd', e.ashp/1000.0 AS 'ashp', t.temperature AS 'temperature', e.solar/1000.0 AS 'solar' "
@@ -686,7 +689,7 @@ class ViewBasetemp(View):
         sql = sql + \
         """FROM (SELECT date, solar, ashp FROM energy_hourly WHERE house_id = :house_id AND solar > -500 AND ashp > 0 AND %s) e
            LEFT JOIN (SELECT date, temperature, (:base - temperature) / 24.0 AS 'hdd' FROM temperature_hourly
-           WHERE house_id = :house_id AND device_id = 0 AND temperature <= :base AND %s) t ON e.date = t.date
+           WHERE house_id = :house_id AND device_id = 0 AND temperature <= :base %s) t ON e.date = t.date
            WHERE t.date = e.date
         """ % (date_range, date_range)
 
