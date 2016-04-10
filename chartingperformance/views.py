@@ -536,6 +536,9 @@ class ViewWater(View):
 
     def __init__(self, args, house_id):
         super(ViewWater, self).__init__(args)
+        if ('day' in self.args['interval']) or ('hour' in self.args['interval']):
+            self.success = False
+            self.error = {'error':'Interval not available.'}
         if self.success:
             self.get_totals(house_id)
             self.get_items(house_id)
