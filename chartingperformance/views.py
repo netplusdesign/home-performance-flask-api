@@ -687,7 +687,7 @@ class ViewBasetemp(View):
             sql = "SELECT e.date AS 'date', SUM(t.hdd) AS 'hdd', SUM(e.ashp)/1000.0 AS 'ashp', AVG(t.temperature) AS 'temperature', SUM(e.solar)/1000.0 AS 'solar' "
 
         sql = sql + \
-        """FROM (SELECT date, solar, ashp FROM energy_hourly WHERE house_id = :house_id AND solar > -500 AND ashp > 0 AND %s) e
+        """FROM (SELECT date, solar, ashp FROM energy_hourly WHERE house_id = :house_id AND solar > -500 AND ashp > 50 %s) e
            LEFT JOIN (SELECT date, temperature, (:base - temperature) / 24.0 AS 'hdd' FROM temperature_hourly
            WHERE house_id = :house_id AND device_id = 0 AND temperature <= :base %s) t ON e.date = t.date
            WHERE t.date = e.date
