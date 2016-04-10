@@ -693,6 +693,9 @@ class ViewBasetemp(View):
            WHERE t.date = e.date
         """ % (date_range, date_range)
 
+        if self.args['interval'] == 'year':
+            sql = sql + "GROUP BY YEAR(t.date)"
+
         if self.args['interval'] == 'month':
             sql = sql + "GROUP BY YEAR(t.date), MONTH(t.date)"
 
