@@ -481,6 +481,10 @@ class ViewTemperature(View):
                                       func.max(TemperatureHourly.temperature)),
                                 label('avg_temperature',
                                       func.avg(TemperatureHourly.temperature)),
+                                label('min_humidity',
+                                      func.min(TemperatureHourly.humidity)),
+                                label('max_humidity',
+                                      func.max(TemperatureHourly.humidity)),
                                 label('sum_hdd',
                                       func.sum(HDDHourly.hdd))).\
             outerjoin(HDDHourly, and_(HDDHourly.date == TemperatureHourly.date,
@@ -495,7 +499,9 @@ class ViewTemperature(View):
         self.json_totals = {'min_temperature': totals.min_temperature,
                             'max_temperature': totals.max_temperature,
                             'avg_temperature': totals.avg_temperature,
-                            'sum_hdd': totals.sum_hdd}
+                            'sum_hdd': totals.sum_hdd,
+                            'min_humidity': totals.min_humidity,
+                            'max_humidity': totals.max_humidity}
 
     def get_items(self):
         """ Get and store rows from database. """
@@ -508,7 +514,9 @@ class ViewTemperature(View):
                     'min_temperature': item.min_temperature,
                     'max_temperature': item.max_temperature,
                     'avg_temperature': item.avg_temperature,
-                    'sum_hdd': item.sum_hdd}
+                    'sum_hdd': item.sum_hdd,
+                    'min_humidity': item.min_humidity,
+                    'max_humidity': item.max_humidity}
             self.json_items.append(data)
 
     def get_response(self):
@@ -519,6 +527,7 @@ class ViewTemperature(View):
 
         return jsonify(view='temperature',
                        interval=self.args['interval'],
+                       location=self.args['location'],
                        totals=self.json_totals,
                        items=self.json_items)
 
