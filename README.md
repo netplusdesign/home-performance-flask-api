@@ -283,7 +283,7 @@ Attributes
 
   * start -- date, range includes start date. (time is ignored). Ex. 2014-12-01
   * end -- date, range does _not_ include end date. (time is ignored). Ex. 2014-12-01
-  * duration -- string, time factor added to start, combined with hour(s), day(s) or month(s). Ex. 1month, 2months, 1year (Currently only addative to start date. If supplied, will override end date.)
+  * duration -- string, time factor added to start, combined with hour(s), day(s) or month(s). Ex. 1month, 2months, 1year (Currently only additive to start date. If supplied, will override end date.)
   * interval -- int, options are years, months or days, hours. Not all intervals work on all views.
   * base -- int, base temperature for 'heat' view only.
   * circuit -- string. See api/houses/:house_id/circuits/
