@@ -334,24 +334,24 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         rv = self.app.get('/api/houses/0/views/basetemp/?interval=months&start=2013-01-01&duration=12months&base=65')
         json_rv = json.loads(rv.data)
         assert json_rv['interval'] == 'month'
-        assert len(json_rv['points']) == 9
-        assert json_rv['points'][0]['date'] == '2013-01-01 15:00:00'
-        assert round(json_rv['points'][0]['hdd'], 6) == 639.533917
-        assert json_rv['points'][0]['ashp'] == 237.8200
-        assert json_rv['points'][0]['temperature'] == 23.5167189   # should be hdd
-        assert json_rv['points'][0]['solar'] == -10.3790
+        assert len(json_rv['points']) == 7
+        assert json_rv['points'][0]['date'] == '2013-01-01'
+        assert round(json_rv['points'][0]['hdd'], 6) == 635.079083
+        assert json_rv['points'][0]['ashp'] == 237.696
+        assert json_rv['points'][0]['temperature'] == 23.3554699  # should be hdd
+        assert json_rv['points'][0]['solar'] == -10.008
 
     def test_views_basetemp_default(self):
         rv = self.app.get('/api/houses/0/views/basetemp/?interval=months&start=2013-01-01&duration=12months')
         json_rv = json.loads(rv.data)
         assert json_rv['base'] == '65'
         assert json_rv['interval'] == 'month'
-        assert len(json_rv['points']) == 9
-        assert json_rv['points'][0]['date'] == '2013-01-01 15:00:00'
-        assert round(json_rv['points'][0]['hdd'], 6) == 639.533917
-        assert json_rv['points'][0]['ashp'] == 237.8200
-        assert json_rv['points'][0]['temperature'] == 23.5167189   # should be hdd
-        assert json_rv['points'][0]['solar'] == -10.3790
+        assert len(json_rv['points']) == 7
+        assert json_rv['points'][0]['date'] == '2013-01-01'
+        assert round(json_rv['points'][0]['hdd'], 6) == 635.079083
+        assert json_rv['points'][0]['ashp'] == 237.696
+        assert json_rv['points'][0]['temperature'] == 23.3554699  # should be hdd
+        assert json_rv['points'][0]['solar'] == -10.008
 
     def test_views_chart(self):
         rv = self.app.get('/api/houses/0/views/chart/?interval=hours&start=2013-01-01&duration=1day')
