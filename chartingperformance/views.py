@@ -821,8 +821,14 @@ class ViewUsage(View):
                                    'actual': subtotal,
                                    'name': self.get_circuit_info('all_other')['name']
                                   })
-        self.json_circuit = {'circuit_id': 'summary',
-                             'name':  'Total'}
+        if 'year' in self.args['interval']:
+            self.json_circuit = {'circuit_id': 'summary',
+                                 'name':  'Total'}
+        else:
+            self.json_circuit = {'circuit_id': 'summary',
+                                 'startdate': self.args['start'].strftime("%Y-%m-%d"),
+                                 'enddate': self.args['end'].strftime("%Y-%m-%d"),
+                                 'name':  'Total'}
 
     def get_circuit_all(self, house_id):
         """ Get and store all circuit usage total and by interval from database. """
