@@ -338,7 +338,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['points'][0]['date'] == '2013-01-01'
         assert round(json_rv['points'][0]['hdd'], 6) == 635.079083
         assert json_rv['points'][0]['ashp'] == 237.696
-        assert json_rv['points'][0]['temperature'] == 23.3554699  # should be hdd
+        assert json_rv['points'][0]['temperature'] == 23.3554699
         assert json_rv['points'][0]['solar'] == -10.008
 
     def test_views_basetemp_default(self):
@@ -350,7 +350,7 @@ class ChartingPerformanceTestCase(unittest.TestCase):
         assert json_rv['points'][0]['date'] == '2013-01-01'
         assert round(json_rv['points'][0]['hdd'], 6) == 635.079083
         assert json_rv['points'][0]['ashp'] == 237.696
-        assert json_rv['points'][0]['temperature'] == 23.3554699  # should be hdd
+        assert json_rv['points'][0]['temperature'] == 23.3554699
         assert json_rv['points'][0]['solar'] == -10.008
 
     def test_views_chart(self):
