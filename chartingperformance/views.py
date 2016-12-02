@@ -849,7 +849,7 @@ class ViewUsage(View):
                                            label('budget',
                                                  func.sum(EstimatedMonthly.used))
                                           ). \
-            join(EstimatedMonthly, and_(EnergyMonthly.date == EstimatedMonthly.date,
+            outerjoin(EstimatedMonthly, and_(EnergyMonthly.date == EstimatedMonthly.date,
                                         EnergyMonthly.house_id == EstimatedMonthly.house_id)).\
             filter(EnergyMonthly.house_id == house_id)
 
