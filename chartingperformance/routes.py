@@ -9,16 +9,16 @@ from chartingperformance.models import EnergyMonthly
 from chartingperformance.models import EnergyHourly
 from chartingperformance.models import LimitsHourly
 
-from chartingperformance.views import CircuitDict
-from chartingperformance.views import ViewSummary
-from chartingperformance.views import ViewGeneration
-from chartingperformance.views import ViewUsage
-from chartingperformance.views import ViewHdd
-from chartingperformance.views import ViewTemperature
-from chartingperformance.views import ViewWater
-from chartingperformance.views import ViewBasetemp
-from chartingperformance.views import ViewHeatmap
-from chartingperformance.views import ViewChart
+from chartingperformance.views.circuit import CircuitDict
+from chartingperformance.views.summary import Summary
+from chartingperformance.views.generation import Generation
+from chartingperformance.views.usage import Usage
+from chartingperformance.views.hdd import Hdd
+from chartingperformance.views.temperature import Temperature
+from chartingperformance.views.water import Water
+from chartingperformance.views.basetemp import Basetemp
+from chartingperformance.views.heatmap import Heatmap
+from chartingperformance.views.chart import Chart
 
 from flask import request, jsonify, url_for, make_response
 
@@ -80,7 +80,7 @@ def setup(house_id):
 def view_summary(house_id):
     """ Return summary view for house X. """
 
-    view = ViewSummary(request.args, house_id)
+    view = Summary(request.args, house_id)
 
     return view.get_response()
 
@@ -88,7 +88,7 @@ def view_summary(house_id):
 def view_generation(house_id):
     """ Return generation view for house X. """
 
-    view = ViewGeneration(request.args, house_id)
+    view = Generation(request.args, house_id)
 
     return view.get_response()
 
@@ -96,7 +96,7 @@ def view_generation(house_id):
 def view_usage(house_id):
     """ Return usage view for house X. """
 
-    view = ViewUsage(request.args, house_id)
+    view = Usage(request.args, house_id)
 
     return view.get_response()
 
@@ -104,7 +104,7 @@ def view_usage(house_id):
 def view_hdd(house_id):
     """ Return hdd view for house X. """
 
-    view = ViewHdd(request.args, house_id)
+    view = Hdd(request.args, house_id)
 
     return view.get_response()
 
@@ -112,7 +112,7 @@ def view_hdd(house_id):
 def view_temperature(house_id):
     """ Return temperature view for house X. """
 
-    view = ViewTemperature(request.args, house_id)
+    view = Temperature(request.args, house_id)
 
     return view.get_response()
 
@@ -120,7 +120,7 @@ def view_temperature(house_id):
 def view_water(house_id):
     """ Return water view for house X. """
 
-    view = ViewWater(request.args, house_id)
+    view = Water(request.args, house_id)
 
     return view.get_response()
 
@@ -128,7 +128,7 @@ def view_water(house_id):
 def view_heat(house_id):
     """ Return basetemp view for house X. """
 
-    view = ViewBasetemp(request.args, house_id)
+    view = Basetemp(request.args, house_id)
 
     return view.get_response()
 
@@ -136,7 +136,7 @@ def view_heat(house_id):
 def view_heatmap(house_id):
     """ Return heatmap daily view for house X. """
 
-    view = ViewHeatmap(request.args, house_id)
+    view = Heatmap(request.args, house_id)
 
     return view.get_response()
 
@@ -144,7 +144,7 @@ def view_heatmap(house_id):
 def view_chart(house_id):
     """ Return chart hourly view for house X. """
 
-    view = ViewChart(request.args, house_id)
+    view = Chart(request.args, house_id)
 
     return view.get_response()
 
