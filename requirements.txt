@@ -13,4 +13,4 @@ simplejson==3.6.5
 six==1.9.0
 SQLAlchemy==0.9.8
 times==0.7
-Werkzeug==0.9.6
+Werkzeug==0.15.3
