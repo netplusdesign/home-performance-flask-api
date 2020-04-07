@@ -83,10 +83,10 @@ class Basetemp(View):
         self.json_items = []
         for item in items:
             data = {'date': self.format_date(item.date),
-                    'solar': item.solar,
-                    'ashp': item.ashp,
-                    'temperature': item.temperature,
-                    'hdd': item.hdd}
+                    'solar': str(item.solar),
+                    'ashp': str(item.ashp),
+                    'temperature': str(item.temperature),
+                    'hdd': str(item.hdd)}
             self.json_items.append(data)
 
     def get_response(self):

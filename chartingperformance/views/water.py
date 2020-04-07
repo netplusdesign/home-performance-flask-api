@@ -59,11 +59,11 @@ class Water(View):
                                start=self.args['start'],
                                end=self.args['end']).one()
 
-        self.json_totals = {'cold': totals.cold,
-                            'hot': totals.hot,
-                            'main': totals.main,
-                            'water_heater':  totals.water_heater,
-                            'water_pump': totals.water_pump}
+        self.json_totals = {'cold': str(totals.cold),
+                            'hot': str(totals.hot),
+                            'main': str(totals.main),
+                            'water_heater':  str(totals.water_heater),
+                            'water_pump': str(totals.water_pump)}
 
     def get_items(self, house_id):
         """ Get and store rows from database. """
@@ -114,11 +114,11 @@ class Water(View):
         self.json_items = []
         for item in items:
             data = {'date': str(item.date),
-                    'cold': item.cold,
-                    'hot': item.hot,
-                    'main': item.main,
-                    'water_heater':  item.water_heater,
-                    'water_pump': item.water_pump}
+                    'cold': str(item.cold),
+                    'hot': str(item.hot),
+                    'main': str(item.main),
+                    'water_heater':  str(item.water_heater),
+                    'water_pump': str(item.water_pump)}
             self.json_items.append(data)
 
     def get_response(self):

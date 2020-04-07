@@ -61,7 +61,7 @@ class Hdd(View):
             filter(TemperatureHourly.temperature == sub_query).first()
 
         self.json_coldest_hour = {'date': str(min_temperature_hour_query.date),
-                                  'temperature': min_temperature_hour_query.temperature}
+                                  'temperature': str(min_temperature_hour_query.temperature)}
 
     def get_coldest_day(self, house_id):
         """ Get and store dict of coldest day from database. """
@@ -75,7 +75,7 @@ class Hdd(View):
             filter(HDDDaily.hdd == sub_query).one()
 
         self.json_coldest_day = {'date': str(min_hdd_day_query.date),
-                                 'temperature': min_hdd_day_query.hdd}
+                                 'temperature': str(min_hdd_day_query.hdd)}
         # actually hdd, not temperature. Need to fix here, and in frontend
 
     def get_iga(self, house_id):
@@ -101,10 +101,10 @@ class Hdd(View):
 
         totals = self.base_query.one()
 
-        self.json_totals = {'actual': totals.sum_actual,
-                            'estimated': totals.sum_estimated,
-                            'ashp_heating_season': self.total_hdd_and_ashp_in_heating_season_query.total_ashp,
-                            'hdd_heating_season': self.total_hdd_and_ashp_in_heating_season_query.total_hdd}
+        self.json_totals = {'actual': str(totals.sum_actual),
+                            'estimated': str(totals.sum_estimated),
+                            'ashp_heating_season': str(self.total_hdd_and_ashp_in_heating_season_query.total_ashp),
+                            'hdd_heating_season': str(self.total_hdd_and_ashp_in_heating_season_query.total_hdd)}
 
     def get_items(self):
         """ Get and store rows from database. """
@@ -114,8 +114,8 @@ class Hdd(View):
         self.json_items = []
         for item in items:
             data = {'date': str(item.date),
-                    'actual': item.sum_actual,
-                    'estimated': item.sum_estimated}
+                    'actual': str(item.sum_actual),
+                    'estimated': str(item.sum_estimated)}
             self.json_items.append(data)
 
     def get_response(self):
@@ -128,6 +128,6 @@ class Hdd(View):
                        interval=self.args['interval'],
                        coldest_hour=self.json_coldest_hour,
                        coldest_day=self.json_coldest_day,
-                       iga=self.iga_query.iga,
+                       iga=str(self.iga_query.iga),
                        totals=self.json_totals,
                        items=self.json_items)

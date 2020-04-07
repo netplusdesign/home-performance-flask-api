@@ -100,11 +100,11 @@ class Usage(View):
                 subtotal = subtotal - actual
 
             self.json_circuits.append({'circuit_id': column['name'],
-                                       'actual': actual,
+                                       'actual': str(actual),
                                        'name': self.get_circuit_info(column['name'])['name']
                                       })
         self.json_circuits.append({'circuit_id': 'all_other',
-                                   'actual': subtotal,
+                                   'actual': str(subtotal),
                                    'name': self.get_circuit_info('all_other')['name']
                                   })
         if 'year' in self.args['interval']:
@@ -143,16 +143,16 @@ class Usage(View):
 
         totals = self.base_query.one()
 
-        self.json_totals = {'actual': totals.actual,
-                            'budget': totals.budget}
+        self.json_totals = {'actual': str(totals.actual),
+                            'budget': str(totals.budget)}
 
         items = self.group_query_by_interval(EnergyMonthly)
 
         self.json_items = []
         for item in items:
             data = {'date': str(item.date),
-                    'actual': item.actual,
-                    'budget': item.budget}
+                    'actual': str(item.actual),
+                    'budget': str(item.budget)}
             self.json_items.append(data)
 
         self.json_circuit = {'circuit_id': 'all',
@@ -168,23 +168,23 @@ class Usage(View):
 
         if 'hour' in self.args['interval']:
             self.base_query = self.base_query.\
-                        add_column(label('date', EnergyHourly.date))
+                        add_columns(label('date', EnergyHourly.date))
         else:
             self.base_query = self.base_query.\
-                        add_column(label('date', func.date(EnergyHourly.date)))
+                        add_columns(label('date', func.date(EnergyHourly.date)))
 
         self.filter_query_by_date_range(EnergyHourly)
 
         totals = self.base_query.one()
 
-        self.json_totals = {'actual': totals.actual}
+        self.json_totals = {'actual': str(totals.actual)}
 
         items = self.group_query_by_interval(EnergyHourly)
 
         self.json_items = []
         for item in items:
             data = {'date': self.format_date(item.date),
-                    'actual': item.actual}
+                    'actual': str(item.actual)}
             self.json_items.append(data)
 
         self.json_circuit = {'circuit_id': 'all',
@@ -231,8 +231,8 @@ class Usage(View):
                                end=self.args['end'],
                                base=self.args['base']).one()
 
-        self.json_totals = {'actual': totals.actual,
-                            'hdd': totals.hdd}
+        self.json_totals = {'actual': str(totals.actual),
+                            'hdd': str(totals.hdd)}
 
         grp = ""
 
@@ -256,8 +256,8 @@ class Usage(View):
         self.json_items = []
         for item in items:
             data = {'date': self.format_date(item.date),
-                    'actual': item.actual,
-                    'hdd': item.hdd}
+                    'actual': str(item.actual),
+                    'hdd': str(item.hdd)}
             self.json_items.append(data)
 
         self.json_circuit = {'circuit_id': 'ashp',
@@ -312,23 +312,23 @@ class Usage(View):
 
         if 'hour' in self.args['interval']:
             self.base_query = self.base_query.\
-                        add_column(label('date', EnergyHourly.date))
+                        add_columns(label('date', EnergyHourly.date))
         else:
             self.base_query = self.base_query.\
-                        add_column(label('date', func.date(EnergyHourly.date)))
+                        add_columns(label('date', func.date(EnergyHourly.date)))
 
         self.filter_query_by_date_range(EnergyHourly)
 
         totals = self.base_query.one()
 
-        self.json_totals = {'actual': totals.actual}
+        self.json_totals = {'actual': str(totals.actual)}
 
         items = self.group_query_by_interval(EnergyHourly)
 
         self.json_items = []
         for item in items:
             data = {'date': self.format_date(item.date),
-                    'actual': item.actual}
+                    'actual': str(item.actual)}
             self.json_items.append(data)
 
         self.json_circuit = {'circuit_id': 'all_other',
@@ -348,23 +348,23 @@ class Usage(View):
 
         if 'hour' in self.args['interval']:
             self.base_query = self.base_query.\
-                        add_column(label('date', EnergyHourly.date))
+                        add_columns(label('date', EnergyHourly.date))
         else:
             self.base_query = self.base_query.\
-                        add_column(label('date', func.date(EnergyHourly.date)))
+                        add_columns(label('date', func.date(EnergyHourly.date)))
 
         self.filter_query_by_date_range(EnergyHourly)
 
         totals = self.base_query.one()
 
-        self.json_totals = {'actual': totals.actual}
+        self.json_totals = {'actual': str(totals.actual)}
 
         items = self.group_query_by_interval(EnergyHourly)
 
         self.json_items = []
         for item in items:
             data = {'date': self.format_date(item.date),
-                    'actual': item.actual}
+                    'actual': str(item.actual)}
             self.json_items.append(data)
 
         self.json_circuit = {'circuit_id': circuit,

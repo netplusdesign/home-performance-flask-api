@@ -7,7 +7,7 @@ from sqlalchemy import exc
 from sqlalchemy import event
 from sqlalchemy.pool import Pool
 
-from flask.ext.cors import CORS
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config.from_object('chartingperformance.default_settings')

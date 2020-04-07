@@ -219,11 +219,11 @@ def get_limits(house_id):
     limits = db_session.query(LimitsHourly). \
         filter(EnergyHourly.house_id == house_id).one()
 
-    return {'used_max': limits.used_max,
-            'solar_min': limits.solar_min,
-            'outdoor_deg_min': limits.outdoor_deg_min,
-            'outdoor_deg_max': limits.outdoor_deg_max,
-            'hdd_max': limits.hdd_max,
+    return {'used_max': str(limits.used_max),
+            'solar_min': str(limits.solar_min),
+            'outdoor_deg_min': str(limits.outdoor_deg_min),
+            'outdoor_deg_max': str(limits.outdoor_deg_max),
+            'hdd_max': str(limits.hdd_max),
             'start_date': str(limits.start_date),
             'end_date': str(limits.end_date)}
 

@@ -48,12 +48,12 @@ class Temperature(View):
 
         totals = self.base_query.one()
 
-        self.json_totals = {'min_temperature': totals.min_temperature,
-                            'max_temperature': totals.max_temperature,
-                            'avg_temperature': totals.avg_temperature,
-                            'sum_hdd': totals.sum_hdd,
-                            'min_humidity': totals.min_humidity,
-                            'max_humidity': totals.max_humidity}
+        self.json_totals = {'min_temperature': str(totals.min_temperature),
+                            'max_temperature': str(totals.max_temperature),
+                            'avg_temperature': str(totals.avg_temperature),
+                            'sum_hdd': str(totals.sum_hdd),
+                            'min_humidity': str(totals.min_humidity),
+                            'max_humidity': str(totals.max_humidity)}
 
     def get_items(self):
         """ Get and store rows from database. """
@@ -63,12 +63,12 @@ class Temperature(View):
         self.json_items = []
         for item in items:
             data = {'date': self.format_date(item.date),
-                    'min_temperature': item.min_temperature,
-                    'max_temperature': item.max_temperature,
-                    'avg_temperature': item.avg_temperature,
-                    'sum_hdd': item.sum_hdd,
-                    'min_humidity': item.min_humidity,
-                    'max_humidity': item.max_humidity}
+                    'min_temperature': str(item.min_temperature),
+                    'max_temperature': str(item.max_temperature),
+                    'avg_temperature': str(item.avg_temperature),
+                    'sum_hdd': str(item.sum_hdd),
+                    'min_humidity': str(item.min_humidity),
+                    'max_humidity': str(item.max_humidity)}
             self.json_items.append(data)
 
     def get_response(self):

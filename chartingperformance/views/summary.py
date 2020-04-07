@@ -51,10 +51,10 @@ class Summary(View):
 
         totals = self.base_query.one()
 
-        self.json_totals = {'net': totals.sum_adjusted_load,
-                            'solar': totals.sum_solar,
-                            'used': totals.sum_used,
-                            'hdd': totals.sum_hdd
+        self.json_totals = {'net': str(totals.sum_adjusted_load),
+                            'solar': str(totals.sum_solar),
+                            'used': str(totals.sum_used),
+                            'hdd': str(totals.sum_hdd)
                            }
 
     def get_items(self, energy_table):
@@ -65,10 +65,10 @@ class Summary(View):
         self.json_items = []
         for item in items:
             data = {'date': self.format_date(item.date),
-                    'net': item.sum_adjusted_load,
-                    'solar': item.sum_solar,
-                    'used': item.sum_used,
-                    'hdd': item.sum_hdd}
+                    'net': str(item.sum_adjusted_load),
+                    'solar': str(item.sum_solar),
+                    'used': str(item.sum_used),
+                    'hdd': str(item.sum_hdd)}
             self.json_items.append(data)
 
     def get_response(self):

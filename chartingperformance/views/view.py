@@ -94,11 +94,13 @@ class View(object):
                                           self.valid_intervals)
 
         start = args.get('start', None)
-        if start is not None:
+        if start != '' and start is not None:
             try:
                 start = moment.date(start)
             except ValueError:
                 start = None
+        else:
+            start = None
 
         end = args.get('end', None)
         if end is None:

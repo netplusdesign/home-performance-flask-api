@@ -42,7 +42,7 @@ class Generation(View):
                 filter(table.solar == sub_query).first()
 
             self.max_solar.append({'date': str(max_solar_query.date),
-                                   'solar': max_solar_query.max_solar})
+                                   'solar': str(max_solar_query.max_solar)})
 
     def get_totals(self, house_id):
         """ Get and store totals from database. """
@@ -70,8 +70,8 @@ class Generation(View):
 
         totals = self.base_query.one()
 
-        self.json_totals = {'actual': totals.sum_actual,
-                            'estimated': totals.sum_estimated}
+        self.json_totals = {'actual': str(totals.sum_actual),
+                            'estimated': str(totals.sum_estimated)}
 
     def get_totals_day_hour(self, house_id):
         """ Get and store daily or hourly totals. """
@@ -85,7 +85,7 @@ class Generation(View):
 
         totals = self.base_query.one()
 
-        self.json_totals = {'actual': totals.sum_actual}
+        self.json_totals = {'actual': str(totals.sum_actual)}
 
     def get_items(self):
         """ Get and store rows from database. """
@@ -96,15 +96,15 @@ class Generation(View):
             items = self.group_query_by_interval(EnergyMonthly)
             for item in items:
                 data = {'date': str(item.date),
-                        'actual': item.sum_actual,
-                        'estimated': item.sum_estimated}
+                        'actual': str(item.sum_actual),
+                        'estimated': str(item.sum_estimated)}
                 self.json_items.append(data)
 
         elif ('day' in self.args['interval']) or ('hour' in self.args['interval']):
             items = self.group_query_by_interval(EnergyHourly)
             for item in items:
                 data = {'date': self.format_date(item.date),
-                        'actual': item.sum_actual}
+                        'actual': str(item.sum_actual)}
                 self.json_items.append(data)
 
     def get_response(self):
