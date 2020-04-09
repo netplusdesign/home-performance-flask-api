@@ -43,7 +43,7 @@ class Basetemp(View):
                   """
 
         else:
-            sql = """SELECT e.date AS 'date',
+            sql = """SELECT MIN(e.date) AS 'date',
                      SUM(t.hdd) AS 'hdd',
                      SUM(e.ashp)/1000.0 AS 'ashp',
                      AVG(t.temperature) AS 'temperature',
@@ -82,7 +82,7 @@ class Basetemp(View):
 
         self.json_items = []
         for item in items:
-            data = {'date': self.format_date(item.date),
+            data = {'date': str(self.format_date(item.date)),
                     'solar': str(item.solar),
                     'ashp': str(item.ashp),
                     'temperature': str(item.temperature),

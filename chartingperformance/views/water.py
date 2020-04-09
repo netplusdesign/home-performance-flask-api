@@ -27,17 +27,7 @@ class Water(View):
         totals = db_session.query("cold", "hot", "main",
                                   "water_heater", "water_pump")
 
-        if self.args['start'] is not None and self.args['end'] is not None:
-            date_range = " AND e.date BETWEEN :start AND :end "
-
-        elif self.args['start'] is not None:
-            date_range = " AND e.date >= :start "
-
-        elif self.args['end'] is not None:
-            date_range = " AND e.date < :end "
-
-        elif self.args['start'] is None and self.args['end'] is None:
-            date_range = ""
+        date_range = self.filter_query_by_date_range_sql()
 
         sql = """SELECT SUM(main.gallons) - SUM(hot.gallons) AS 'cold',
                     SUM(hot.gallons) AS 'hot', SUM(main.gallons) AS 'main',
@@ -71,24 +61,15 @@ class Water(View):
         items = db_session.query("date", "cold", "hot", "main",
                                  "water_heater", "water_pump")
 
-        if self.args['start'] is not None and self.args['end'] is not None:
-            date_range = " AND (e.date BETWEEN :start AND :end) "
+        date_range = self.filter_query_by_date_range_sql()
 
-        elif self.args['start'] is not None:
-            date_range = " AND e.date >= :start "
-
-        elif self.args['end'] is not None:
-            date_range = " AND e.date < :end "
-
-        elif self.args['start'] is None and self.args['end'] is None:
-            date_range = ""
-
-        grp = ""
+        sel = "MIN(e.date)"
+        grp = "YEAR(e.date)"
 
         if 'month' in self.args['interval']:
-            grp = ", MONTH(e.date) "
+            grp = "MONTH(e.date) "
 
-        sql = """SELECT e.date AS 'date', SUM(main.gallons) -
+        sql = """SELECT %s AS 'date', SUM(main.gallons) -
                     SUM(hot.gallons) AS 'cold', SUM(hot.gallons) AS 'hot',
                     SUM(main.gallons) AS 'main',
                     SUM(e.water_heater) AS 'water_heater',
@@ -102,9 +83,9 @@ class Water(View):
                         AND hot.house_id = e.house_id
                  WHERE e.house_id = :house_id
                  %s
-                 GROUP BY YEAR(e.date) %s
-                 ORDER BY e.date
-             """ % (date_range, grp)
+                 GROUP BY %s
+                 ORDER BY %s
+             """ % (sel, date_range, grp, grp)
 
         items = items.from_statement(text(sql))
         items = items.params(house_id=house_id,

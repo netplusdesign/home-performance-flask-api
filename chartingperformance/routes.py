@@ -194,14 +194,14 @@ def get_devices_all(house_id):
 def get_years(house_id):
     """ Return array of valid years of energy data for house X. """
 
-    years = db_session.query(EnergyMonthly.date). \
+    years = db_session.query(func.year(EnergyMonthly.date)). \
         filter(EnergyMonthly.house_id == house_id). \
         group_by(func.year(EnergyMonthly.date)). \
-        order_by(EnergyMonthly.date)
+        order_by(func.year(EnergyMonthly.date))
 
     json_items = []
     for year in years:
-        json_items.append(str(year[0].year))
+        json_items.append(str(year[0]))
 
     return json_items
 

@@ -1,10 +1,10 @@
 """ View parent class """
 # pylint: disable=no-member
-from sqlalchemy import func
-from sqlalchemy.sql import or_
-
 import re
 import moment
+
+from sqlalchemy import func
+from sqlalchemy.sql import or_, text
 
 class View(object):
     """ Parent View provides common methods. Never used directly. """
@@ -39,6 +39,23 @@ class View(object):
 
         return self.base_query
 
+    def filter_query_by_date_range_sql(self):
+        date_range = ""
+
+        if self.args['start'] is not None and self.args['end'] is not None:
+            date_range = " AND e.date BETWEEN :start AND :end "
+
+        elif self.args['start'] is not None:
+            date_range = " AND e.date >= :start "
+
+        elif self.args['end'] is not None:
+            date_range = " AND e.date < :end "
+
+        elif self.args['start'] is None and self.args['end'] is None:
+            date_range = ""
+
+        return date_range
+
     def filter_query_remove_summer_months(self, table):
         """ Return original query plus filters to remove summer months. """
 
@@ -54,15 +71,21 @@ class View(object):
         if 'year' in self.args['interval']:
             self.base_query = self.base_query.\
                               group_by(func.year(table.date))
+            self.base_query = self.base_query.order_by(func.year(table.date))
 
         elif 'month' in self.args['interval']:
             self.base_query = self.base_query.\
                               group_by(func.year(table.date),
                                        func.month(table.date))
+            self.base_query = self.base_query.order_by(func.year(table.date),
+                                       func.month(table.date))
 
         elif 'day' in self.args['interval']:
             self.base_query = self.base_query.\
                               group_by(func.year(table.date),
+                                       func.month(table.date),
+                                       func.day(table.date))
+            self.base_query = self.base_query.order_by(func.year(table.date),
                                        func.month(table.date),
                                        func.day(table.date))
 
@@ -72,8 +95,10 @@ class View(object):
                                        func.month(table.date),
                                        func.day(table.date),
                                        func.hour(table.date))
-
-        self.base_query = self.base_query.order_by(table.date)
+            self.base_query = self.base_query.order_by(func.year(table.date),
+                                       func.month(table.date),
+                                       func.day(table.date),
+                                       func.hour(table.date))
 
         return self.base_query
 

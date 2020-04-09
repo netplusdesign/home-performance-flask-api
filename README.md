@@ -1,10 +1,8 @@
 # home-performance-flask-api
 
-This repo houses a complete rewrite of the [home-performance-ang](https://github.com/netplusdesign/home-performance-ang) backend from PHP to Python and Flask.
+This is an api to serve home performance history data (electricity and water usage, temperatures) to a frontend like [home-performance-ang-flask](https://github.com/netplusdesign/home-performance-ang-flask).
 
-The new version of the Angular frontend is at [home-performance-ang-flask](https://github.com/netplusdesign/home-performance-ang-flask).
-
-MySQL is still maintained as the database, but I'm using SQLAlchemy in hopes that this will make it easier to try out new DBs in the future.
+This project has been upgraded to Python 3.x and MySql 5.7.
 
 Database setup scripts at [home-performance-ops](https://github.com/netplusdesign/home-performance-ops).
 
@@ -16,31 +14,17 @@ Make sure database is already setup and populated with test data.
 
 Create a virtual environment
 
-`virtualenv env`
+`python -m venv env`
 
 Activate the environment
 
-`. env/bin/activate`
+`source env/bin/activate`
 
 Install flask, flask-sqlalchemy and your database driver. I'm using mySQL.
 
 If you have a similar setup then you can run,
 
 `pip install -r requirements.txt`
-
-Otherwise, you can selectively install the following.
-
-`pip install Flask`
-
-`pip install flask-sqlalchemy`
-
-`pip install mysql-python`
-
-`pip install simplejson`
-
-`pip install -U flask-cors`
-
-`pip install moment`
 
 Start the Flask HTTP server.
 
@@ -62,58 +46,7 @@ If you install coverage.py you can see the coverage results, currently at 97%.
 
 `coverage html` or whichever method you prefer to view the results.
 
-## Installation -- PythonAnywhere
-
-Create a new database on the database tab.
-
-Upload a backup of your local database.
-
-From the MySQL console:
-
-`source filename.sql`
-
-Update default_settings.py with username, password, database and host info.
-
-Add a new web app under the Web tab.
-
-In the path, enter...
-
-`/home/name/chartingperformance`
-
-Check the WSGI configuration and make sure the app is imported correctly. It should look like this:
-
-```python
-from chartingperformance import app as application
-```
-
-Upload files to the chartingperformance folder.
-
-Install 2 packages that are not standard on PythonAnywhere. Use the --user flag.
-
-`pip install --user momment`
-
-`pip install -U --user flask-cors`
-
-Edit __init__.py and comment or remove the last 2 lines:
-
-```python
-#if __name__ == '__main__':
-#    app.run(debug=True)
-```
-
-I also had to comment out this line:
-
-```python
-#app.config.from_envvar('HOMEPERFORMANCE_SETTINGS')
-```
-
-Although in hindsight, could have set the variable in the console. Maybe next time.
-
-Hit refresh on the Web tab, just to make sure everything is ready to go.
-
-Point browser at, http://youraccount.pythonanywhere.com/api/houses
-
-## Installation -- FastCGI
+## Installation -- FastCGI (Not updated)
 
 You will need flup.
 
@@ -121,7 +54,7 @@ You will need flup.
 
 Follow your host's instructions for setting up your Python environment. Everyone is different. This may include a `.htaccess` file.
 
-Add a `myapp.fcgi` file to your project directory. See [Flask documentation on FastCGI](http://flask.pocoo.org/docs/0.10/deploying/fastcgi/).
+Add a `myapp.fcgi` file to your project directory. See [Flask documentation on FastCGI](https://flask.palletsprojects.com/en/1.1.x/deploying/fastcgi/).
 
 Touch the `myapp.fcgi` file after any updates to code.
 

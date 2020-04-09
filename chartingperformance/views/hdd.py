@@ -88,7 +88,7 @@ class Hdd(View):
         """ Get and store totals from database. """
 
         self.base_query = db_session.\
-                          query(HDDMonthly.date,
+                          query(label('date', func.min(HDDMonthly.date)),
                                 label('sum_actual',
                                       func.sum(HDDMonthly.hdd)),
                                 label('sum_estimated',

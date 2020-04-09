@@ -26,7 +26,7 @@ class Temperature(View):
         """ Get and store totals from database. """
 
         self.base_query = db_session.\
-                          query(TemperatureHourly.date,
+                          query(label('date', func.min(TemperatureHourly.date)),
                                 label('min_temperature',
                                       func.min(TemperatureHourly.temperature)),
                                 label('max_temperature',

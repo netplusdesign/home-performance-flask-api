@@ -32,7 +32,7 @@ class Summary(View):
                 div = 1000
 
             self.base_query = db_session.\
-                              query(energy_table.date,
+                              query(label('date', func.min(energy_table.date)),
                                     label('sum_solar', func.sum(energy_table.solar)/div),
                                     label('sum_used', func.sum(energy_table.used)/div),
                                     label('sum_adjusted_load', func.sum(energy_table.adjusted_load)/div),

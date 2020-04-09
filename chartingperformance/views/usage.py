@@ -129,7 +129,7 @@ class Usage(View):
         """ Get and store all circuit usage total for yearly or monthly. """
 
         self.base_query = db_session.query(label('date',
-                                                 EnergyMonthly.date),
+                                                 func.min(EnergyMonthly.date)),
                                            label('actual',
                                                  func.sum(EnergyMonthly.used)),
                                            label('budget',
@@ -166,12 +166,8 @@ class Usage(View):
                                                  func.sum(EnergyHourly.used)/1000)).\
             filter(EnergyHourly.house_id == house_id)
 
-        if 'hour' in self.args['interval']:
-            self.base_query = self.base_query.\
-                        add_columns(label('date', EnergyHourly.date))
-        else:
-            self.base_query = self.base_query.\
-                        add_columns(label('date', func.date(EnergyHourly.date)))
+        self.base_query = self.base_query.\
+                    add_columns(label('date', func.min(EnergyHourly.date)))
 
         self.filter_query_by_date_range(EnergyHourly)
 
@@ -196,22 +192,12 @@ class Usage(View):
 
         session = db_session.query("date", "actual", "hdd")
 
-        if self.args['start'] is not None and self.args['end'] is not None:
-            date_range = " AND (e.date BETWEEN :start AND :end) "
+        date_range = self.filter_query_by_date_range_sql()
 
-        elif self.args['start'] is not None:
-            date_range = " AND e.date >= :start "
-
-        elif self.args['end'] is not None:
-            date_range = " AND e.date < :end "
-
-        elif self.args['start'] is None and self.args['end'] is None:
-            date_range = ""
-
-        date_column_format = "e.date"
+        date_column_format = "MIN(e.date)"
 
         if self.args['interval'] is not 'hour':
-            date_column_format = "DATE(e.date)"
+            date_column_format = "MIN(DATE(e.date))"
 
         sql = """SELECT %s AS 'date', SUM(e.ashp)/1000.0 AS 'actual',
                   SUM( IF( ((:base - t.temperature) / 24) > 0,
@@ -310,12 +296,8 @@ class Usage(View):
             filter(or_(EnergyHourly.device_id == 5,
                        EnergyHourly.device_id == 10))
 
-        if 'hour' in self.args['interval']:
-            self.base_query = self.base_query.\
-                        add_columns(label('date', EnergyHourly.date))
-        else:
-            self.base_query = self.base_query.\
-                        add_columns(label('date', func.date(EnergyHourly.date)))
+        self.base_query = self.base_query.\
+                    add_columns(label('date', func.min(EnergyHourly.date)))
 
         self.filter_query_by_date_range(EnergyHourly)
 
@@ -346,12 +328,8 @@ class Usage(View):
             filter(or_(EnergyHourly.device_id == 5,
                        EnergyHourly.device_id == 10))
 
-        if 'hour' in self.args['interval']:
-            self.base_query = self.base_query.\
-                        add_columns(label('date', EnergyHourly.date))
-        else:
-            self.base_query = self.base_query.\
-                        add_columns(label('date', func.date(EnergyHourly.date)))
+        self.base_query = self.base_query.\
+                    add_columns(label('date', func.min(EnergyHourly.date)))
 
         self.filter_query_by_date_range(EnergyHourly)
 

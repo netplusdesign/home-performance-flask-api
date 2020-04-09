@@ -56,7 +56,7 @@ class Generation(View):
     def get_totals_year_month(self, house_id):
         """ Get and store yearly or monthly totals. """
 
-        self.base_query = db_session.query(EnergyMonthly.date,
+        self.base_query = db_session.query(label('date', func.min(EnergyMonthly.date)),
                                            label('sum_actual',
                                                  func.sum(EnergyMonthly.solar)),
                                            label('sum_estimated',
@@ -76,7 +76,7 @@ class Generation(View):
     def get_totals_day_hour(self, house_id):
         """ Get and store daily or hourly totals. """
 
-        self.base_query = db_session.query(EnergyHourly.date,
+        self.base_query = db_session.query(label('date', func.min(EnergyHourly.date)),
                                            label('sum_actual',
                                                  func.sum(EnergyHourly.solar)/1000)).\
             filter(EnergyHourly.house_id == house_id)

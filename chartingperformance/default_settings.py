@@ -1,5 +1,5 @@
 config = {
-    'user' : 'web', 
+    'user' : 'web',
     'password' : 'test',
     'host' : '127.0.0.1',
     'database' : 'home_performance_dev'
@@ -7,4 +7,5 @@ config = {
 
 DEBUG = True
 SECRET_KEY = 'secretsecretsecret'
-DATABASE_URI = 'mysql://%s:%s@%s/%s' % (config['user'], config['password'], config['host'], config['database'])
+DATABASE_URI = 'mysql://%s:%s@%s/%s' % (config['user'],\
+    config['password'], config['host'], config['database'])
