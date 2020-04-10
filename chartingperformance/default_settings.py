@@ -9,3 +9,4 @@ DEBUG = True
 SECRET_KEY = 'secretsecretsecret'
 DATABASE_URI = 'mysql://%s:%s@%s/%s' % (config['user'],\
     config['password'], config['host'], config['database'])
+HOST = '0.0.0.0'
