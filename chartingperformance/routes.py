@@ -20,7 +20,7 @@ from chartingperformance.views.basetemp import Basetemp
 from chartingperformance.views.heatmap import Heatmap
 from chartingperformance.views.chart import Chart
 
-from flask import request, jsonify, url_for, make_response
+from flask import request, jsonify, url_for, make_response, render_template
 
 from sqlalchemy import func
 
@@ -28,6 +28,11 @@ from sqlalchemy import func
 def not_found(error):
     """ Return page not found error in json. """
     return make_response(jsonify({'error': 'Not found'}), 404)
+
+@app.route("/")
+def index():
+    """ Return homepage. """
+    return render_template('index.html')
 
 @app.route('/api/houses/', methods=['GET'])
 def get_houses():

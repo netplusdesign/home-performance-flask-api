@@ -4,6 +4,7 @@ dateparser==0.7.4
 Flask==1.1.2
 Flask-Cors==3.0.8
 Flask-SQLAlchemy==2.4.1
+flup==1.0.3
 itsdangerous==1.1.0
 Jinja2==2.11.1
 MarkupSafe==1.1.1
