@@ -196,7 +196,7 @@ class Usage(View):
 
         date_column_format = "MIN(e.date)"
 
-        if self.args['interval'] is not 'hour':
+        if self.args['interval'] != 'hour':
             date_column_format = "MIN(DATE(e.date))"
 
         sql = """SELECT %s AS 'date', SUM(e.ashp)/1000.0 AS 'actual',

@@ -11,7 +11,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 app.config.from_object('chartingperformance.default_settings')
-# app.config.from_envvar('HOMEPERFORMANCE_SETTINGS')
+app.config.from_envvar('HOMEPERFORMANCE_SETTINGS')
 
 engine = create_engine(app.config['DATABASE_URI'])
 db_session = scoped_session(sessionmaker(autocommit=False,
@@ -42,4 +42,4 @@ def shutdown_session(exception=None):
     db_session.remove()
 
 if __name__ == '__main__':
-    app.run(host=app.config['HOST'], debug=app.config['DEBUG'])
+    app.run(host=app.config['HOST'], port=app.config['PORT'], debug=app.config['DEBUG'])

@@ -5,7 +5,7 @@ from chartingperformance.views.view import View
 
 from flask import jsonify
 
-from sqlalchemy.sql import text
+from sqlalchemy.sql import text, column
 
 class Water(View):
     """ Water view query and response methods. """
@@ -24,8 +24,8 @@ class Water(View):
     def get_totals(self, house_id):
         """ Get and store totals from database. """
 
-        totals = db_session.query("cold", "hot", "main",
-                                  "water_heater", "water_pump")
+        totals = db_session.query(column("cold"), column("hot"), column("main"),
+                                  column("water_heater"), column("water_pump"))
 
         date_range = self.filter_query_by_date_range_sql()
 
@@ -46,8 +46,8 @@ class Water(View):
 
         totals = totals.from_statement(text(sql))
         totals = totals.params(house_id=house_id,
-                               start=self.args['start'],
-                               end=self.args['end']).one()
+                               start=self.is_date(self.args['start']),
+                               end=self.is_date(self.args['end'])).one()
 
         self.json_totals = {'cold': str(totals.cold),
                             'hot': str(totals.hot),
@@ -58,8 +58,8 @@ class Water(View):
     def get_items(self, house_id):
         """ Get and store rows from database. """
 
-        items = db_session.query("date", "cold", "hot", "main",
-                                 "water_heater", "water_pump")
+        items = db_session.query(column("date"), column("cold"), column("hot"), column("main"),
+                                 column("water_heater"), column("water_pump"))
 
         date_range = self.filter_query_by_date_range_sql()
 
@@ -89,8 +89,8 @@ class Water(View):
 
         items = items.from_statement(text(sql))
         items = items.params(house_id=house_id,
-                             start=self.args['start'],
-                             end=self.args['end']).all()
+                               start=self.is_date(self.args['start']),
+                               end=self.is_date(self.args['end'])).all()
 
         self.json_items = []
         for item in items:

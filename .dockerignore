@@ -1,0 +1,6 @@
+env/
+.env
+**/*.pyc
+.git
+.gitignore
+.DS_Store

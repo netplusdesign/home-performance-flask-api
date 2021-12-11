@@ -2,13 +2,13 @@
 
 This is an api to serve home performance history data (electricity and water usage, temperatures) to a frontend like [home-performance-ang-flask](https://github.com/netplusdesign/home-performance-ang-flask).
 
-This project has been upgraded to Python 3.x and MySql 5.7.
+This project has been upgraded to Python 3.x and MySql 8.
 
 Database setup scripts at [home-performance-ops](https://github.com/netplusdesign/home-performance-ops).
 
-A running version of the API is available at: [netplusdesign.com/api/houses](http://netplusdesign.com/api/houses)
+A running version of the API is available at: [netplusdesign.com/homeperformance/api/houses](https://www.netplusdesign.com/homeperformance/api/houses/)
 
-## Installation -- Dev
+## Installation -- Local Dev
 
 Make sure database is already setup and populated with test data.
 
@@ -45,6 +45,27 @@ If you install coverage.py you can see the coverage results, currently at 97%.
 `coverage run tests.py`
 
 `coverage html` or whichever method you prefer to view the results.
+
+## Installation -- Docker running on Apple Silicon
+
+You can use an old MySQL database, but can't use the old MySQL driver.
+
+I'm using MariaDB running in its own container. Then I have a base image with the new MariaDB Connector.
+This required upgrading to SQLAlchemy 1.4.
+
+Build the base image for the MariaDB Connector. See [home-performance-python-mariadb](https://github.com/netplusdesign/home-performance-python-mariadb). The flask-api project uses this image as a base.
+
+Then build the image for home-performance-flask-api.
+
+```
+docker build -t home-performance-flask-api .
+```
+
+Then run it.
+
+```
+docker run --net dev-network --env-file .env -p 5001:5000  --name flask-api -d home-performance-flask-api
+```
 
 ## Installation -- FastCGI (Not updated)
 

@@ -5,7 +5,7 @@ from chartingperformance.views.view import View
 
 from flask import jsonify
 
-from sqlalchemy.sql import text
+from sqlalchemy.sql import text, column
 
 class Basetemp(View):
     """ Basetemp analysis view query and response methods. """
@@ -20,7 +20,8 @@ class Basetemp(View):
     def get_items(self, house_id):
         """ Get and store points (primarily hdd and ashp values) from database. """
 
-        items = db_session.query("hdd", "ashp", "temperature", "date", "solar")
+        items = db_session.query(column("hdd"), column("ashp"),
+                                 column("temperature"), column("date"), column("solar"))
 
         if self.args['start'] is not None and self.args['end'] is not None:
             date_range = " AND date BETWEEN :start AND :end "
@@ -77,8 +78,8 @@ class Basetemp(View):
         items = items.from_statement(text(sql))
         items = items.params(house_id=house_id,
                              base=self.args['base'],
-                             start=self.args['start'],
-                             end=self.args['end']).all()
+                             start=self.is_date(self.args['start']),
+                             end=self.is_date(self.args['end'])).all()
 
         self.json_items = []
         for item in items:

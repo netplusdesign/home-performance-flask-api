@@ -23,6 +23,10 @@ class View(object):
         self.json_items = None
         self.json_circuit = None
 
+    def is_date(self, var):
+        if var is not None:
+            return var.date
+
     def filter_query_by_date_range(self, table):
         """ Return original query plus date range filters. """
 
