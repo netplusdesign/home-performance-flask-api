@@ -1,7 +1,7 @@
 arrow==0.15.5
 click==7.1.1
 dateparser==0.7.4
-Flask==1.1.2
+Flask==2.3.2
 Flask-Cors==3.0.9
 Flask-SQLAlchemy==2.4.1
 flup==1.0.3
